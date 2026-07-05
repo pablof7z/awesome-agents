@@ -4,7 +4,7 @@
   "description": "Install reusable agent profiles into Codex, Claude Code, and OpenCode.",
   "type": "module",
   "bin": {
-    "awesome-agents": "./bin/awesome-agents.js"
+    "awesome-agents": "bin/awesome-agents.js"
   },
   "files": [
     "bin",
