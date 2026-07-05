@@ -6,7 +6,7 @@ agent profile instead of a skill.
 
 Supported sources are GitHub repos, Git URLs, or local checkouts that use the
 agent-profile source layout. Profiles are read from YAML or Markdown files under
-`agents/profiles/`, adapted for the selected harness, and installed into the
+`agents/<slug>/`, adapted for the selected harness, and installed into the
 right place for Codex, Claude Code, or OpenCode.
 
 ## Install And Run
@@ -89,19 +89,20 @@ An agent-profile source should look like:
 
 ```text
 agents/
-  profiles/
-    triage-agent.agent.yaml
-    ops-agent.agf.yaml
-    legacy-agent.md
-  adapters/
-    codex/
-      optional-agent.md
+  triage-agent/
+    agent.yaml
+  ops-agent/
+    agent.agf.yaml
+    scripts/
+      heartbeat.sh
+    references/
+      runbook.md
 ```
 
 YAML profile files are preferred. The loader also accepts Markdown files with
 YAML frontmatter for compatibility with tools that use `.agent.md`-style
-profiles. Adapters are optional and can provide harness-specific metadata, but a
-profile should stand on its own without requiring an adapter.
+profiles. Agent-owned `scripts/` and `references/` are installed into
+`~/.agents/homes/<slug>/scripts` and `~/.agents/homes/<slug>/references`.
 
 ## Examples
 

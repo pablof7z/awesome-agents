@@ -9,10 +9,11 @@ OpenCode.
 
 The canonical source format is repo-neutral:
 
-- `agents/profiles/*.agent.yaml`: preferred YAML profile definitions.
-- `agents/profiles/*.agf.yaml`: Agent Format-style YAML profile definitions.
-- `agents/profiles/*.md`: Markdown profile definitions with YAML frontmatter.
-- `agents/adapters/<harness>/*`: optional harness-specific metadata and notes.
+- `agents/<slug>/agent.yaml`: preferred YAML profile definition.
+- `agents/<slug>/agent.agf.yaml`: Agent Format-style YAML profile definition.
+- `agents/<slug>/agent.md`: Markdown profile definition with YAML frontmatter.
+- `agents/<slug>/scripts/`: agent-owned scripts installed into the agent home.
+- `agents/<slug>/references/`: agent-owned references installed into the agent home.
 
 Never hard-code a particular source repository into runtime behavior, tests, or
 examples. Use neutral fixture/source names unless a test is explicitly about
@@ -53,6 +54,8 @@ source resolution.
 ## Safety
 
 - Never overwrite or delete unmanaged harness files by default.
+- Install agent-owned support files into `~/.agents/homes/<slug>/`, not into
+  harness configuration directories.
 - Keep install behavior deterministic and noninteractive. `--yes` exists for
   parity with `npx skills`, but the CLI should not require prompts to complete.
 - Do not mutate harness configuration beyond writing the selected generated

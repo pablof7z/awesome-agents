@@ -1,9 +1,10 @@
 import { existsSync } from "node:fs";
 import fs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import { AGENT_ALIASES, DEFAULT_AGENT, SUPPORTED_AGENTS } from "./constants.js";
 import { contentHash, isGeneratedContent, normalizeAgentList, renderForAgent, resolveTargetPath } from "./renderers.js";
-import { loadCatalog, materializeSource, splitSourceSpec } from "./source.js";
+import { expandHome, loadCatalog, materializeSource, splitSourceSpec } from "./source.js";
 import { readRegistry, registryPath, removeInstall, upsertInstall, writeRegistry } from "./registry.js";
 
 export async function listAvailable(sourceInput, options = {}) {
@@ -37,6 +38,7 @@ export async function installFromSource(sourceSpec, options = {}) {
     const installedAt = new Date().toISOString();
 
     for (const profile of profiles) {
+      const supportTargets = await installProfileSupport(profile, options);
       for (const harness of harnesses) {
         const content = renderForAgent(profile, harness, { source: materialized.source });
         const target = resolveTargetPath(profile, harness, { ...options, scope });
@@ -53,6 +55,7 @@ export async function installFromSource(sourceSpec, options = {}) {
           target,
           installedAt,
           contentSha256: contentHash(content),
+          supportTargets,
           dryRun: Boolean(options.dryRun)
         };
 
@@ -215,7 +218,7 @@ export async function updateInstalled(profileArgs = [], options = {}) {
 export async function initProfile(name, options = {}) {
   const slug = slugify(name || "new-agent-profile");
   const root = options.cwd ?? process.cwd();
-  const profilePath = path.join(root, "agents", "profiles", `${slug}.agent.yaml`);
+  const profilePath = path.join(root, "agents", slug, "agent.yaml");
 
   if (!options.force) {
     if (existsSync(profilePath)) {
@@ -235,6 +238,45 @@ export async function initProfile(name, options = {}) {
     action: options.dryRun ? "would-init" : "initialized",
     files: [profilePath]
   };
+}
+
+async function installProfileSupport(profile, options = {}) {
+  if (!profile.supportDirs?.length) {
+    return [];
+  }
+
+  const home = path.resolve(expandHome(options.home ?? os.homedir()));
+  const agentHome = path.join(home, ".agents", "homes", profile.slug);
+  const targets = [];
+
+  for (const supportDir of profile.supportDirs) {
+    const files = await listFilesRecursive(supportDir.sourcePath);
+    for (const source of files) {
+      const relative = path.relative(supportDir.sourcePath, source);
+      const target = path.join(agentHome, supportDir.kind, relative);
+      targets.push(target);
+      if (!options.dryRun) {
+        await fs.mkdir(path.dirname(target), { recursive: true });
+        await fs.copyFile(source, target);
+      }
+    }
+  }
+
+  return targets;
+}
+
+async function listFilesRecursive(root) {
+  const entries = await fs.readdir(root, { withFileTypes: true });
+  const files = [];
+  for (const entry of entries) {
+    const entryPath = path.join(root, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...await listFilesRecursive(entryPath));
+    } else if (entry.isFile()) {
+      files.push(entryPath);
+    }
+  }
+  return files.sort();
 }
 
 function buildRunInstructions(operations, env = process.env) {

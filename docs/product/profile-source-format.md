@@ -8,25 +8,23 @@ The source format is intentionally repo-neutral:
 
 ```text
 agents/
-  profiles/
-    <profile>.agent.yaml
-    <profile>.agf.yaml
-    <profile>.md
-  adapters/
-    <harness>/
-      <profile>.md
+  <profile>/
+    agent.yaml
+    scripts/
+    references/
 ```
 
 Canonical profiles live at:
 
 ```text
-agents/profiles/*.{agent.yaml,agent.yml,agf.yaml,agf.yml,yaml,yml,agent.md,md}
+agents/<profile>/{agent.yaml,agent.yml,agent.agf.yaml,agent.agf.yml,agent.md}
 ```
 
-Optional harness adapters live at:
+Optional agent-owned support material lives at:
 
 ```text
-agents/adapters/<harness>/*
+agents/<profile>/scripts/*
+agents/<profile>/references/*
 ```
 
 ## Profile Files
@@ -42,8 +40,9 @@ of emerging YAML agent-definition shapes:
 
 The CLI should preserve canonical profile content and generate harness-specific install files. A profile is reusable product content, not local machine setup.
 
-Adapters are optional. A profile should be useful without a harness adapter; an
-adapter is only an override for harness-specific metadata or instructions.
+Agent-owned scripts and references should be installed into
+`~/.agents/homes/<profile>/scripts` and
+`~/.agents/homes/<profile>/references`.
 
 Profile source files are intentionally under `agents/`, not `skills/`, because
 the source format models agent profiles separately from loadable skills.

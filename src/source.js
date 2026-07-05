@@ -18,6 +18,26 @@ const PROFILE_SUFFIXES = [
   ".agent.md",
   ".md"
 ];
+const AGENT_DEFINITION_NAMES = [
+  "agent.agent.yaml",
+  "agent.agent.yml",
+  "agent.agf.yaml",
+  "agent.agf.yml",
+  "agent.yaml",
+  "agent.yml",
+  "agent.agent.md",
+  "agent.md",
+  "profile.agent.yaml",
+  "profile.agent.yml",
+  "profile.agf.yaml",
+  "profile.agf.yml",
+  "profile.yaml",
+  "profile.yml",
+  "profile.agent.md",
+  "profile.md"
+];
+const RESERVED_AGENT_DIRS = new Set(["profiles", "adapters"]);
+const SUPPORT_DIRS = ["references", "scripts"];
 
 export function splitSourceSpec(spec) {
   if (!spec) {
@@ -117,28 +137,30 @@ export async function materializeSource(sourceInput, options = {}) {
 }
 
 async function assertAgentProfileLayout(sourcePath) {
-  const profilesDir = path.join(sourcePath, "agents", "profiles");
-  if (!existsSync(profilesDir)) {
-    throw new Error(`No agents/profiles directory found in ${sourcePath}`);
+  const entries = await discoverProfileEntries(sourcePath);
+  if (entries.length === 0) {
+    throw new Error(`No agent profiles found in ${sourcePath}. Expected agents/<slug>/agent.yaml.`);
   }
 }
 
 export async function loadCatalog(sourcePath) {
-  const profilesDir = path.join(sourcePath, "agents", "profiles");
-  const adapterRoot = path.join(sourcePath, "agents", "adapters");
-  const files = await fs.readdir(profilesDir, { withFileTypes: true });
+  const entries = await discoverProfileEntries(sourcePath);
   const profiles = [];
+  const seen = new Set();
 
-  for (const file of files) {
-    if (!file.isFile() || !isProfileFile(file.name)) {
+  for (const entry of entries) {
+    const profile = await loadProfileFile(entry.filePath, sourcePath, {
+      slugHint: entry.slugHint,
+      agentRoot: entry.agentRoot
+    });
+    if (seen.has(profile.slug)) {
       continue;
     }
-
-    const filePath = path.join(profilesDir, file.name);
-    const profile = await loadProfileFile(filePath, sourcePath);
+    seen.add(profile.slug);
     profiles.push({
       ...profile,
-      adapters: await loadAdapters(adapterRoot, profile.slug, sourcePath)
+      adapters: await loadProfileAdapters(entry, profile.slug, sourcePath),
+      supportDirs: await loadSupportDirs(entry.agentRoot)
     });
   }
 
@@ -146,8 +168,104 @@ export async function loadCatalog(sourcePath) {
   return { sourcePath, profiles };
 }
 
+async function discoverProfileEntries(sourcePath) {
+  return [
+    ...await discoverAgentDirectoryProfiles(sourcePath),
+    ...await discoverLegacyProfileDirectory(sourcePath)
+  ];
+}
+
+async function discoverAgentDirectoryProfiles(sourcePath) {
+  const agentsRoot = path.join(sourcePath, "agents");
+  if (!existsSync(agentsRoot)) {
+    return [];
+  }
+
+  const entries = [];
+  const files = await fs.readdir(agentsRoot, { withFileTypes: true });
+  for (const file of files) {
+    if (!file.isDirectory() || RESERVED_AGENT_DIRS.has(file.name)) {
+      continue;
+    }
+    const agentRoot = path.join(agentsRoot, file.name);
+    const filePath = await findAgentDefinitionFile(agentRoot, file.name);
+    if (!filePath) {
+      continue;
+    }
+    entries.push({
+      layout: "agent-directory",
+      filePath,
+      slugHint: file.name,
+      agentRoot,
+      adapterRoot: path.join(agentRoot, "adapters")
+    });
+  }
+  return entries;
+}
+
+async function discoverLegacyProfileDirectory(sourcePath) {
+  const profilesDir = path.join(sourcePath, "agents", "profiles");
+  if (!existsSync(profilesDir)) {
+    return [];
+  }
+
+  const entries = [];
+  const files = await fs.readdir(profilesDir, { withFileTypes: true });
+  for (const file of files) {
+    if (!file.isFile() || !isProfileFile(file.name)) {
+      continue;
+    }
+    entries.push({
+      layout: "legacy-profiles-directory",
+      filePath: path.join(profilesDir, file.name),
+      slugHint: profileSlugFromFilename(file.name),
+      adapterRoot: path.join(sourcePath, "agents", "adapters")
+    });
+  }
+  return entries;
+}
+
+async function findAgentDefinitionFile(agentRoot, slug) {
+  for (const name of AGENT_DEFINITION_NAMES) {
+    const candidate = path.join(agentRoot, name);
+    if (existsSync(candidate)) {
+      return candidate;
+    }
+  }
+  for (const suffix of PROFILE_SUFFIXES) {
+    const candidate = path.join(agentRoot, `${slug}${suffix}`);
+    if (existsSync(candidate)) {
+      return candidate;
+    }
+  }
+  return undefined;
+}
+
+async function loadProfileAdapters(entry, slug, sourcePath) {
+  const adapters = {};
+  Object.assign(adapters, await loadAdapters(entry.adapterRoot, slug, sourcePath));
+  if (entry.layout === "agent-directory") {
+    Object.assign(adapters, await loadAdapters(path.join(sourcePath, "agents", "adapters"), slug, sourcePath));
+  }
+  return adapters;
+}
+
+async function loadSupportDirs(agentRoot) {
+  if (!agentRoot) {
+    return [];
+  }
+  const dirs = [];
+  for (const kind of SUPPORT_DIRS) {
+    const sourcePath = path.join(agentRoot, kind);
+    if (existsSync(sourcePath)) {
+      dirs.push({ kind, sourcePath });
+    }
+  }
+  return dirs;
+}
+
 async function loadAdapters(adapterRoot, slug, sourcePath) {
-  if (!existsSync(adapterRoot)) {
+  if (!adapterRoot || !existsSync(adapterRoot)) {
     return {};
   }
 
@@ -178,10 +296,10 @@ async function loadAdapters(adapterRoot, slug, sourcePath) {
   return adapters;
 }
 
-async function loadProfileFile(filePath, sourcePath) {
+async function loadProfileFile(filePath, sourcePath, options = {}) {
   const raw = await fs.readFile(filePath, "utf8");
   const parsed = await loadDefinitionFile(filePath, raw);
-  const fallbackSlug = profileSlugFromFilename(path.basename(filePath));
+  const fallbackSlug = options.slugHint ?? profileSlugFromFilename(path.basename(filePath));
   const slug = parsed.attributes.slug ?? parsed.attributes.id ?? fallbackSlug;
   const name = parsed.attributes.name ?? titleize(slug);
   const summary = parsed.attributes.summary ?? parsed.attributes.description ?? "";
@@ -200,7 +318,9 @@ async function loadProfileFile(filePath, sourcePath) {
     raw,
     filePath,
     relativePath: path.relative(sourcePath, filePath),
-    format: parsed.format
+    format: parsed.format,
+    agentRoot: options.agentRoot,
+    layout: options.agentRoot ? "agent-directory" : "legacy-profiles-directory"
   };
 }
 

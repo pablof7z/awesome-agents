@@ -175,6 +175,18 @@ test("installs an Agent Format YAML profile as a profile, not a skill", async ()
   assert.match(content, /You are an ops agent/);
   assert.doesNotMatch(content, /primary_skill/);
   assert.doesNotMatch(content, /skills\//);
+
+  assert.equal(existsSync(path.join(home, ".agents", "homes", "ops-agent", "scripts", "heartbeat.sh")), true);
+  assert.equal(existsSync(path.join(home, ".agents", "homes", "ops-agent", "references", "runbook.md")), true);
+
+  const parsed = JSON.parse(result.stdout);
+  assert.deepEqual(
+    parsed.operations[0].supportTargets.map((targetPath) => path.relative(home, targetPath)).sort(),
+    [
+      ".agents/homes/ops-agent/references/runbook.md",
+      ".agents/homes/ops-agent/scripts/heartbeat.sh"
+    ]
+  );
 });
 
 test("installs a GitHub shorthand source with --agent as the profile selector", async () => {

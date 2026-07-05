@@ -25,7 +25,7 @@ Supported source values:
 - GitHub URL: `https://github.com/owner/repo`
 
 For GitHub sources, the CLI clones a shallow temporary copy and reads
-`agents/profiles`.
+`agents/<slug>/agent.yaml` style definitions.
 
 There is no default source. `add`, `install`, and `use` require the caller to
 provide a source explicitly.

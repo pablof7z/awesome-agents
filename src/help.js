@@ -173,7 +173,7 @@ export function formatMissingSourceError(commandName = "add") {
   ].join("\n");
 }
 
-const sourceHint = `${ui.profile("agents/profiles/*.{agent.yaml,agf.yaml,md}")} plus optional ${ui.profile("agents/adapters/<harness>/*")}`;
+const sourceHint = `${ui.profile("agents/<slug>/agent.yaml")} plus optional ${ui.profile("agents/<slug>/{scripts,references}")}`;
 const harnesses = SUPPORTED_AGENTS.join("|");
 const exampleSource = "owner/repo";
 const exampleProfile = "triage-agent";
@@ -288,8 +288,8 @@ const commandHelp = {
       {
         title: "Install Flow:",
         rows: [
-          "1. Read canonical profiles from agents/profiles/*.{agent.yaml,agf.yaml,md}.",
-          "2. Merge optional harness notes from agents/adapters/<harness>/*.",
+          "1. Read canonical definitions from agents/<slug>/agent.yaml or compatible variants.",
+          "2. Install agent-owned scripts and references into ~/.agents/homes/<slug>/.",
           "3. Render Codex, Claude Code, or OpenCode files and record them in the registry."
         ]
       },

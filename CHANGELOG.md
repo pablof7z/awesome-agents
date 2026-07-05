@@ -31,6 +31,8 @@ Initial tracked release.
 - Replace source-specific help and documentation examples with neutral `owner/repo` examples.
 - Parse repo-neutral YAML profile files in addition to Markdown frontmatter files.
 - Replace source-specific test fixtures with neutral profile-source fixtures.
+- Prefer `agents/<slug>/agent.yaml` source directories and install colocated
+  `scripts/` and `references/` into the agent home.
 
 ## 0.1.1 - 2026-07-05
 
