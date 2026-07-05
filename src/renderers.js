@@ -56,12 +56,7 @@ export function resolveTargetPath(profile, agent, options = {}) {
       : process.env.CODEX_HOME
         ? path.resolve(expandHome(process.env.CODEX_HOME, home))
         : path.join(home, ".codex");
-
-    if (scope === "project") {
-      return path.join(cwd, ".codex", "agents", `${profile.slug}.toml`);
-    }
-
-    return path.join(codexHome, "agents", `${profile.slug}.toml`);
+    return path.join(codexHome, `${profile.slug}.config.toml`);
   }
 
   if (normalized === "claude-code") {
@@ -170,8 +165,10 @@ function buildInstructionBody(profile, adapter, harness) {
     "",
     "## Installed Profile Context",
     "",
-    `- Canonical profile slug: \`${profile.slug}\``,
+    `- Installed identity: \`${profile.slug}\``,
+    `- Role/name: \`${profile.name}\``,
     `- Installed for: \`${harness}\``,
+    "- When asked who you are, what agent is running, or what role you are acting as, answer with this identity and role.",
     "- This profile is a reusable operational agent profile, not local machine setup.",
     "- The runtime agent manages any profile-specific home directory and notes at task time."
   ];

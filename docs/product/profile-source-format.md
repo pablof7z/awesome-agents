@@ -4,7 +4,7 @@ These notes capture how profile source repositories are organized.
 
 ## Canonical Layout
 
-The initial source format follows the `touch-grass` layout:
+The source format is intentionally repo-neutral:
 
 ```text
 agents/
@@ -33,7 +33,7 @@ Profile files are Markdown with YAML frontmatter.
 
 The CLI should preserve canonical profile content and generate harness-specific install files. A profile is reusable product content, not local machine setup.
 
-Current `touch-grass` profiles include:
+Fixture profiles used by tests include:
 
 - `chief-of-staff`
 - `ios-tester`
@@ -47,11 +47,12 @@ loadable skills.
 
 The CLI should support:
 
-- Local paths such as `/Users/customer/touch-grass`.
-- GitHub shorthand such as `pablof7z/touch-grass`.
+- Local paths such as `/path/to/agent-profiles`.
+- GitHub shorthand such as `owner/repo`.
 - GitHub URLs.
 
-The first source repository is `touch-grass`, but the format should not be hard-coded only to that repository.
+The package must not hard-code any source repository. `add`, `install`, and
+`use` require an explicit source from the caller.
 
 ## Registry Or Search
 

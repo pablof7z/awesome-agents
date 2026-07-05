@@ -21,11 +21,11 @@ export async function installFromSource(sourceSpec, options = {}) {
   const split = splitSourceSpec(sourceSpec);
   const source = split.source;
   const { selectors, harnessInput } = resolveInstallSelection(split, options);
-  const scope = resolveScope(options);
   const harnesses = normalizeAgentList(harnessInput, {
     all: options.all,
     defaultAgent: DEFAULT_AGENT
   });
+  const scope = resolveScope(options, harnesses);
 
   const materialized = await materializeSource(source, options);
   try {
@@ -71,7 +71,11 @@ export async function installFromSource(sourceSpec, options = {}) {
       await writeRegistry(registry, registryOptions);
     }
 
-    return { operations, registryPath: registryPath(registryOptions) };
+    return {
+      operations,
+      registryPath: registryPath(registryOptions),
+      runInstructions: buildRunInstructions(operations)
+    };
   } finally {
     await materialized.cleanup();
   }
@@ -104,10 +108,11 @@ export async function useFromSource(sourceSpec, options = {}) {
 }
 
 export async function listInstalled(options = {}) {
-  const scope = resolveScope(options);
-  const registry = await readRegistry({ ...options, scope });
   const harnessInput = options.agents ?? options.agent;
-  const harnessFilter = harnessInput ? new Set(normalizeAgentList(harnessInput)) : undefined;
+  const harnesses = harnessInput ? normalizeAgentList(harnessInput) : [];
+  const scope = resolveScope(options, harnesses);
+  const registry = await readRegistry({ ...options, scope });
+  const harnessFilter = harnesses.length > 0 ? new Set(harnesses) : undefined;
   const installs = registry.installs
     .filter((install) => !harnessFilter || harnessFilter.has(install.harness))
     .map((install) => ({
@@ -123,7 +128,9 @@ export async function listInstalled(options = {}) {
 }
 
 export async function removeInstalled(profileArgs = [], options = {}) {
-  const scope = resolveScope(options);
+  const harnessInput = options.agents ?? options.agent;
+  const harnesses = harnessInput ? normalizeAgentList(harnessInput) : [];
+  const scope = resolveScope(options, harnesses);
   const registryOptions = { ...options, scope };
   const registry = await readRegistry(registryOptions);
   const selectors = normalizeProfileSelectors(profileArgs);
@@ -132,8 +139,7 @@ export async function removeInstalled(profileArgs = [], options = {}) {
     throw new Error("Specify at least one profile to remove, or pass --all.");
   }
 
-  const harnessInput = options.agents ?? options.agent;
-  const harnessFilter = harnessInput ? new Set(normalizeAgentList(harnessInput)) : undefined;
+  const harnessFilter = harnesses.length > 0 ? new Set(harnesses) : undefined;
   const operations = [];
   const matched = registry.installs.filter((install) => {
     const profileMatch = removeAll || selectors.includes(install.profile);
@@ -172,12 +178,13 @@ export async function removeInstalled(profileArgs = [], options = {}) {
 }
 
 export async function updateInstalled(profileArgs = [], options = {}) {
-  const scope = resolveScope(options);
+  const harnessInput = options.agents ?? options.agent;
+  const harnesses = harnessInput ? normalizeAgentList(harnessInput) : [];
+  const scope = resolveScope(options, harnesses);
   const registryOptions = { ...options, scope };
   const registry = await readRegistry(registryOptions);
   const selectors = normalizeProfileSelectors(profileArgs);
-  const harnessInput = options.agents ?? options.agent;
-  const harnessFilter = harnessInput ? new Set(normalizeAgentList(harnessInput)) : undefined;
+  const harnessFilter = harnesses.length > 0 ? new Set(harnesses) : undefined;
   const candidates = registry.installs.filter((install) => {
     const profileMatch = selectors.length === 0 || selectors.includes(install.profile);
     const harnessMatch = !harnessFilter || harnessFilter.has(install.harness);
@@ -185,6 +192,7 @@ export async function updateInstalled(profileArgs = [], options = {}) {
   });
 
   const operations = [];
+  const runInstructions = [];
   for (const install of candidates) {
     const result = await installFromSource(install.source, {
       ...options,
@@ -198,9 +206,10 @@ export async function updateInstalled(profileArgs = [], options = {}) {
       ...operation,
       action: options.dryRun ? "would-update" : "updated"
     })));
+    runInstructions.push(...result.runInstructions);
   }
 
-  return { operations, registryPath: registryPath(registryOptions) };
+  return { operations, registryPath: registryPath(registryOptions), runInstructions };
 }
 
 export async function initProfile(name, options = {}) {
@@ -232,6 +241,95 @@ export async function initProfile(name, options = {}) {
     action: options.dryRun ? "would-init" : "initialized",
     files: [profilePath, adapterPath]
   };
+}
+
+function buildRunInstructions(operations, env = process.env) {
+  const instructions = [];
+  const seen = new Set();
+
+  for (const operation of operations) {
+    if (String(operation.action).startsWith("would-")) {
+      continue;
+    }
+
+    const instruction = runInstructionForOperation(operation, env);
+    if (!instruction) {
+      continue;
+    }
+
+    const key = `${instruction.harness}:${instruction.profile}:${instruction.command}`;
+    if (seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    instructions.push(instruction);
+  }
+
+  return instructions;
+}
+
+function runInstructionForOperation(operation, env) {
+  if (operation.harness === "codex") {
+    if (!commandExists("codex", env)) {
+      return undefined;
+    }
+    return {
+      profile: operation.profile,
+      harness: operation.harness,
+      command: `codex --profile ${shellWord(operation.profile)}`,
+      note: "Starts Codex with this installed profile."
+    };
+  }
+
+  if (operation.harness === "claude-code") {
+    if (!commandExists("claude", env)) {
+      return undefined;
+    }
+    return {
+      profile: operation.profile,
+      harness: operation.harness,
+      command: `claude --agent ${shellWord(operation.profile)}`,
+      note: "Starts Claude Code with this installed agent profile."
+    };
+  }
+
+  if (operation.harness === "opencode") {
+    if (!commandExists("opencode", env)) {
+      return undefined;
+    }
+    return {
+      profile: operation.profile,
+      harness: operation.harness,
+      command: "opencode",
+      note: `Start OpenCode, then invoke @${operation.profile} in the session.`
+    };
+  }
+
+  return undefined;
+}
+
+function commandExists(command, env) {
+  const pathValue = env.PATH ?? "";
+  if (!pathValue) {
+    return false;
+  }
+
+  const extensions = process.platform === "win32"
+    ? (env.PATHEXT ?? ".EXE;.CMD;.BAT;.COM").split(";")
+    : [""];
+
+  return pathValue
+    .split(path.delimiter)
+    .filter(Boolean)
+    .some((directory) => extensions.some((extension) => existsSync(path.join(directory, `${command}${extension}`))));
+}
+
+function shellWord(value) {
+  const text = String(value);
+  if (/^[A-Za-z0-9._/@:-]+$/.test(text)) {
+    return text;
+  }
+  return `'${text.replaceAll("'", "'\\''")}'`;
 }
 
 function selectProfiles(profiles, selectors, all = false) {
@@ -268,11 +366,23 @@ async function writeManagedFile(target, content, options = {}) {
   await fs.writeFile(target, content);
 }
 
-function resolveScope(options = {}) {
+function resolveScope(options = {}, harnesses = []) {
   if (options.project && options.global) {
     throw new Error("Use either --global or --project, not both.");
   }
-  return options.global ? "global" : "project";
+  if (options.project && harnesses.includes("codex")) {
+    throw new Error("Codex profiles are loaded from $CODEX_HOME/<name>.config.toml and cannot be installed project-locally. Use --global or choose a different harness.");
+  }
+  if (options.global) {
+    return "global";
+  }
+  if (options.project) {
+    return "project";
+  }
+  if (harnesses.includes("codex")) {
+    return "global";
+  }
+  return "project";
 }
 
 function normalizeProfileSelectors(values) {

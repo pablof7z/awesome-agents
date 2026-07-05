@@ -4,14 +4,13 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { DEFAULT_SOURCE } from "./constants.js";
 import { parseFrontmatter } from "./frontmatter.js";
 
 const GITHUB_SHORTHAND = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
 
 export function splitSourceSpec(spec) {
   if (!spec) {
-    return { source: DEFAULT_SOURCE, profile: undefined };
+    return { source: undefined, profile: undefined };
   }
 
   const atIndex = spec.lastIndexOf("@");
@@ -57,13 +56,17 @@ export function normalizeGithubUrl(source) {
   return undefined;
 }
 
-export async function materializeSource(sourceInput = DEFAULT_SOURCE, options = {}) {
+export async function materializeSource(sourceInput, options = {}) {
   const home = options.home ?? os.homedir();
-  const source = sourceInput || DEFAULT_SOURCE;
+  const source = sourceInput;
+
+  if (!source) {
+    throw new Error("Specify a source. Use a local path, owner/repo, or GitHub URL.");
+  }
 
   if (isLocalSource(source, home)) {
     const sourcePath = path.resolve(expandHome(source, home));
-    await assertTouchGrassLayout(sourcePath);
+    await assertAgentProfileLayout(sourcePath);
     return {
       kind: "local",
       source: sourcePath,
@@ -89,7 +92,7 @@ export async function materializeSource(sourceInput = DEFAULT_SOURCE, options = 
     throw new Error(`Could not clone ${source}: ${detail}`);
   }
 
-  await assertTouchGrassLayout(cloneDir);
+  await assertAgentProfileLayout(cloneDir);
 
   return {
     kind: "git",
@@ -102,7 +105,7 @@ export async function materializeSource(sourceInput = DEFAULT_SOURCE, options = 
   };
 }
 
-async function assertTouchGrassLayout(sourcePath) {
+async function assertAgentProfileLayout(sourcePath) {
   const profilesDir = path.join(sourcePath, "agents", "profiles");
   if (!existsSync(profilesDir)) {
     throw new Error(`No agents/profiles directory found in ${sourcePath}`);

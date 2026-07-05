@@ -12,18 +12,23 @@
 
 The CLI is noninteractive for the initial scaffold. Options such as `--yes` are
 accepted for parity, but command behavior should be fully scriptable. Installs
-default to project scope; pass `--global` for user-level installs.
+default to project scope where the selected harness supports project-local
+profiles. Codex is the exception: Codex `--profile` loads named config layers
+from `CODEX_HOME`, so Codex profile installs are user-level.
 
 ## Source Resolution
 
 Supported source values:
 
-- Local path: `/Users/customer/touch-grass`, `~/touch-grass`, `.`
-- GitHub shorthand: `pablof7z/touch-grass`
-- GitHub URL: `https://github.com/pablof7z/touch-grass`
+- Local path: `/path/to/agent-profiles`, `~/agent-profiles`, `.`
+- GitHub shorthand: `owner/repo`
+- GitHub URL: `https://github.com/owner/repo`
 
 For GitHub sources, the CLI clones a shallow temporary copy and reads
 `agents/profiles`.
+
+There is no default source. `add`, `install`, and `use` require the caller to
+provide a source explicitly.
 
 ## Install Syntax
 
@@ -36,15 +41,14 @@ npx awesome-agents add owner/repo --agent <profile-slug>
 For example:
 
 ```bash
-npx awesome-agents add pablof7z/touch-grass --agent ios-tester
-npx awesome-agents add pablof7z/touch-grass --agent chief-of-staff
+npx awesome-agents add owner/repo --agent triage-agent
 ```
 
 `--agent` selects the reusable agent profile. `--harness` selects where the
 generated profile is installed:
 
 ```bash
-npx awesome-agents add pablof7z/touch-grass --agent ios-tester --harness opencode
+npx awesome-agents add owner/repo --agent triage-agent --harness opencode
 ```
 
 For backward compatibility, `--agent codex`, `--agent claude-code`, and
@@ -52,6 +56,14 @@ For backward compatibility, `--agent codex`, `--agent claude-code`, and
 
 The `--skill` flag is accepted only as a command-shape alias for `--profile`.
 Installed artifacts remain operational agent profiles.
+
+After install, human-readable output should show the CLI command to run each
+installed profile through any matching harness CLI found on `PATH`. Examples:
+
+```bash
+codex --profile triage-agent
+claude --agent triage-agent
+```
 
 ## Install Safety
 

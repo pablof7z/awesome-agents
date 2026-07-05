@@ -34,7 +34,10 @@ The CLI supports:
 
 Accepted implementation decision:
 
-- Install scope defaults to project to match the `npx skills` mental model and avoid surprising user-global mutation.
+- Install scope defaults to project where the target harness supports project-local profiles.
+- Codex is an exception because `codex --profile <name>` loads
+  `$CODEX_HOME/<name>.config.toml`. Codex profile installs should use that
+  user-level config-layer target.
 - Codex is the default harness when no `--harness` or legacy harness-valued
   `--agent` is provided.
 - The CLI is noninteractive in the initial scaffold.
@@ -45,5 +48,16 @@ Accepted implementation decision:
 The CLI should be useful from automation:
 
 - Human-readable output should include clear target paths.
+- Human-readable install output should show how to run the installed profile
+  through harness CLIs detected on the user's machine.
 - `--json` should be available for scripts.
 - `--dry-run` should preview writes without touching target files or registries.
+
+## Profile Identity
+
+User correction:
+
+- Each installed profile should instruct the harness to identify itself by its
+  installed name and role. If the user asks the running agent "who are you?" or
+  asks for `chief-of-staff`, it should know it is the `chief-of-staff` profile
+  or at least that its role is Chief of Staff.

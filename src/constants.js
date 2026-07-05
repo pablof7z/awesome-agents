@@ -1,6 +1,5 @@
 export const PACKAGE_NAME = "awesome-agents";
-export const PACKAGE_VERSION = "0.1.1";
-export const DEFAULT_SOURCE = "pablof7z/touch-grass";
+export const PACKAGE_VERSION = "0.1.2";
 export const DEFAULT_AGENT = "codex";
 export const SUPPORTED_AGENTS = ["codex", "claude-code", "opencode"];
 export const REGISTRY_DIRNAME = ".awesome-agents";

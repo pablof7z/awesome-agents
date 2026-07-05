@@ -1,5 +1,6 @@
 import { Command } from "commander";
 import { PACKAGE_NAME, PACKAGE_VERSION, SUPPORTED_AGENTS } from "./constants.js";
+import { configureHelp, ui } from "./help.js";
 import {
   initProfile,
   installFromSource,
@@ -19,12 +20,14 @@ export async function run(argv = process.argv) {
     .helpOption("-h, --help", "Show this help message")
     .showHelpAfterError();
 
+  configureHelp(program);
+
   addInstallCommand(program, "add");
   addInstallCommand(program, "install");
 
   program
     .command("use")
-    .argument("[source]", "Source plus profile, for example pablof7z/touch-grass@ios-tester")
+    .argument("<source>", "Source plus profile, for example owner/repo@profile")
     .description("Print one rendered agent profile without installing it")
     .option("-s, --profile <profile>", "Profile slug to use")
     .option("--skill <profile>", "Compatibility alias for --profile")
@@ -79,7 +82,7 @@ export async function run(argv = process.argv) {
       if (options.json) {
         printJson(result);
       } else {
-        printOperations(result.operations, result.registryPath);
+        printOperations(result.operations, result.registryPath, result.runInstructions);
       }
     });
 
@@ -100,7 +103,7 @@ export async function run(argv = process.argv) {
       if (options.json) {
         printJson(result);
       } else {
-        printOperations(result.operations, result.registryPath);
+        printOperations(result.operations, result.registryPath, result.runInstructions);
       }
     });
 
@@ -116,9 +119,9 @@ export async function run(argv = process.argv) {
       if (options.json) {
         printJson(result);
       } else {
-        console.log(`${result.action}:`);
+        console.log(`${ui.success(result.action)}:`);
         for (const file of result.files) {
-          console.log(`  ${file}`);
+          console.log(`  ${ui.path(file)}`);
         }
       }
     });
@@ -134,10 +137,10 @@ export async function run(argv = process.argv) {
 function addInstallCommand(program, commandName) {
   program
     .command(commandName)
-    .argument("[source]", "Local path, GitHub owner/repo, or GitHub URL")
+    .argument("<source>", "Local path, GitHub owner/repo, or GitHub URL")
     .description(commandName === "install" ? "Alias for add" : "Install agent profiles from a source")
     .option("-g, --global", "Install globally")
-    .option("-p, --project", "Install into the current project (default)")
+    .option("-p, --project", "Install into the current project; not supported for Codex profiles")
     .option("-a, --agent <agents...>", "Agent profile slugs to install; accepts harness names for backward compatibility")
     .option("--harness <harnesses...>", `Target harnesses (${SUPPORTED_AGENTS.join(", ")}, or *)`)
     .option("--target <harnesses...>", "Compatibility alias for --harness")
@@ -165,48 +168,72 @@ function addInstallCommand(program, commandName) {
       if (options.json) {
         printJson(result);
       } else {
-        printOperations(result.operations, result.registryPath);
+        printOperations(result.operations, result.registryPath, result.runInstructions);
       }
     });
 }
 
 function printAvailable(profiles) {
   if (profiles.length === 0) {
-    console.log("No profiles found.");
+    console.log(ui.warning("No profiles found."));
     return;
   }
+  console.log(ui.bold("Available profiles:"));
   for (const profile of profiles) {
-    console.log(`${profile.slug}  ${profile.summary || profile.name}`);
+    console.log(`  ${ui.profile(profile.slug)}  ${profile.summary || profile.name}`);
   }
 }
 
 function printInstalled(result) {
   if (result.installs.length === 0) {
-    console.log(`No ${result.scope} profiles installed.`);
+    console.log(ui.warning(`No ${result.scope} profiles installed.`));
     return;
   }
 
+  console.log(ui.bold(`${result.scope} profiles:`));
   for (const install of result.installs) {
-    const missing = install.exists ? "" : " (missing target)";
-    console.log(`${install.profile}  ${install.harness}  ${install.target}${missing}`);
+    const missing = install.exists ? "" : ` ${ui.warning("(missing target)")}`;
+    console.log(`  ${ui.profile(install.profile)}  ${ui.command(install.harness)}  ${ui.path(install.target)}${missing}`);
   }
-  console.log(`Registry: ${result.registryPath}`);
+  console.log(`${ui.bold("Registry:")} ${ui.path(result.registryPath)}`);
 }
 
-function printOperations(operations, registryPath) {
+function printOperations(operations, registryPath, runInstructions = []) {
   if (operations.length === 0) {
-    console.log("No matching profiles.");
+    console.log(ui.warning("No matching profiles."));
     return;
   }
 
   for (const operation of operations) {
-    console.log(`${operation.action}: ${operation.profile} -> ${operation.harness} at ${operation.target}`);
+    console.log(`${formatAction(operation.action)}: ${ui.profile(operation.profile)} -> ${ui.command(operation.harness)} at ${ui.path(operation.target)}`);
   }
   if (registryPath) {
-    console.log(`Registry: ${registryPath}`);
+    console.log(`${ui.bold("Registry:")} ${ui.path(registryPath)}`);
+  }
+  printRunInstructions(runInstructions);
+}
+
+function printRunInstructions(runInstructions = []) {
+  if (runInstructions.length === 0) {
+    return;
+  }
+
+  console.log(ui.bold("Run installed profiles:"));
+  for (const instruction of runInstructions) {
+    console.log(`  ${ui.profile(instruction.profile)} via ${ui.command(instruction.harness)}: ${ui.command(instruction.command)}`);
+    if (instruction.note) {
+      console.log(`    ${instruction.note}`);
+    }
   }
 }
 
 function printJson(value) {
   console.log(JSON.stringify(value, null, 2));
+}
+
+function formatAction(action) {
+  if (action.startsWith("would-")) {
+    return ui.warning(action);
+  }
+  return ui.success(action);
 }

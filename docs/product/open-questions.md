@@ -16,5 +16,6 @@ These are unresolved product questions for `awesome-agents`.
 
 ## Harness Support
 
-- Should future versions generate Codex `--profile` config layers in addition to Codex custom agents?
-- Should `touch-grass` add native Claude Code and OpenCode adapters instead of relying on generated defaults?
+- Should future versions also support Codex custom-agent files in addition to
+  Codex `--profile` config layers?
+- Should source repositories add native Claude Code and OpenCode adapters instead of relying on generated defaults?
