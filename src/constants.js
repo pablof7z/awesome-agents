@@ -1,5 +1,5 @@
 export const PACKAGE_NAME = "awesome-agents";
-export const PACKAGE_VERSION = "0.1.2";
+export const PACKAGE_VERSION = "0.1.3";
 export const DEFAULT_AGENT = "codex";
 export const SUPPORTED_AGENTS = ["codex", "claude-code", "opencode"];
 export const REGISTRY_DIRNAME = ".awesome-agents";
