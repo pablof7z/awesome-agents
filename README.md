@@ -5,9 +5,9 @@ It mirrors the useful parts of `npx skills`, but the unit is an operational
 agent profile instead of a skill.
 
 Supported sources are GitHub repos, Git URLs, or local checkouts that use the
-agent-profile source layout. Profiles are read from `agents/profiles/*.md`,
-adapted for the selected harness, and installed into the right place for Codex,
-Claude Code, or OpenCode.
+agent-profile source layout. Profiles are read from YAML or Markdown files under
+`agents/profiles/`, adapted for the selected harness, and installed into the
+right place for Codex, Claude Code, or OpenCode.
 
 ## Install And Run
 
@@ -23,7 +23,7 @@ From this repo during development:
 ```bash
 npm install
 npm test
-node ./bin/awesome-agents.js add ./test/fixtures/touch-grass --agent ios-tester --dry-run
+node ./bin/awesome-agents.js add ./test/fixtures/profile-source --agent triage-agent --dry-run
 ```
 
 ## Commands
@@ -40,7 +40,7 @@ awesome-agents init [name]
 
 Useful install options:
 
-- `--agent <slug>` to select an agent profile, for example `--agent ios-tester`
+- `--agent <slug>` to select an agent profile, for example `--agent triage-agent`
 - `--profile <slug>` or `--skill <slug>` as explicit profile aliases; `--skill`
   is command-shape compatibility and does not mean the artifact is a skill
 - `--harness codex|claude-code|opencode|*` to select target harnesses
@@ -90,14 +90,18 @@ An agent-profile source should look like:
 ```text
 agents/
   profiles/
-    ios-tester.md
+    triage-agent.agent.yaml
+    ops-agent.agf.yaml
+    legacy-agent.md
   adapters/
     codex/
-      ios-tester.md
+      optional-agent.md
 ```
 
-Profile files are Markdown with YAML frontmatter. Adapters are optional and can
-provide harness-specific metadata such as model and reasoning effort.
+YAML profile files are preferred. The loader also accepts Markdown files with
+YAML frontmatter for compatibility with tools that use `.agent.md`-style
+profiles. Adapters are optional and can provide harness-specific metadata, but a
+profile should stand on its own without requiring an adapter.
 
 ## Examples
 
@@ -108,8 +112,8 @@ npx awesome-agents add owner/repo --agent triage-agent --harness codex --global
 npx awesome-agents add owner/repo --all --dry-run
 npx awesome-agents use owner/repo --agent triage-agent --harness claude-code
 npx awesome-agents list --json
-npx awesome-agents remove ios-tester --agent codex
-npx awesome-agents update ios-tester --agent codex --dry-run
+npx awesome-agents remove triage-agent --agent codex
+npx awesome-agents update triage-agent --agent codex --dry-run
 ```
 
 ## Release Workflow

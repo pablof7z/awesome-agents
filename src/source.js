@@ -4,9 +4,20 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import YAML from "yaml";
 import { parseFrontmatter } from "./frontmatter.js";
 
 const GITHUB_SHORTHAND = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
+const PROFILE_SUFFIXES = [
+  ".agent.yaml",
+  ".agent.yml",
+  ".agf.yaml",
+  ".agf.yml",
+  ".yaml",
+  ".yml",
+  ".agent.md",
+  ".md"
+];
 
 export function splitSourceSpec(spec) {
   if (!spec) {
@@ -119,25 +130,15 @@ export async function loadCatalog(sourcePath) {
   const profiles = [];
 
   for (const file of files) {
-    if (!file.isFile() || !file.name.endsWith(".md")) {
+    if (!file.isFile() || !isProfileFile(file.name)) {
       continue;
     }
 
     const filePath = path.join(profilesDir, file.name);
-    const raw = await fs.readFile(filePath, "utf8");
-    const parsed = parseFrontmatter(raw, filePath);
-    const slug = parsed.attributes.slug ?? path.basename(file.name, ".md");
-
+    const profile = await loadProfileFile(filePath, sourcePath);
     profiles.push({
-      slug,
-      name: parsed.attributes.name ?? slug,
-      summary: parsed.attributes.summary ?? "",
-      attributes: parsed.attributes,
-      body: parsed.body,
-      raw,
-      filePath,
-      relativePath: path.relative(sourcePath, filePath),
-      adapters: await loadAdapters(adapterRoot, slug, sourcePath)
+      ...profile,
+      adapters: await loadAdapters(adapterRoot, profile.slug, sourcePath)
     });
   }
 
@@ -157,13 +158,13 @@ async function loadAdapters(adapterRoot, slug, sourcePath) {
       continue;
     }
 
-    const adapterPath = path.join(adapterRoot, harnessDir.name, `${slug}.md`);
+    const adapterPath = await findProfileLikeFile(path.join(adapterRoot, harnessDir.name), slug);
     if (!existsSync(adapterPath)) {
       continue;
     }
 
     const raw = await fs.readFile(adapterPath, "utf8");
-    const parsed = parseFrontmatter(raw, adapterPath);
+    const parsed = await loadDefinitionFile(adapterPath, raw);
     adapters[harnessDir.name] = {
       harness: harnessDir.name,
       attributes: parsed.attributes,
@@ -175,6 +176,179 @@ async function loadAdapters(adapterRoot, slug, sourcePath) {
   }
 
   return adapters;
+}
+
+async function loadProfileFile(filePath, sourcePath) {
+  const raw = await fs.readFile(filePath, "utf8");
+  const parsed = await loadDefinitionFile(filePath, raw);
+  const fallbackSlug = profileSlugFromFilename(path.basename(filePath));
+  const slug = parsed.attributes.slug ?? parsed.attributes.id ?? fallbackSlug;
+  const name = parsed.attributes.name ?? titleize(slug);
+  const summary = parsed.attributes.summary ?? parsed.attributes.description ?? "";
+
+  return {
+    slug,
+    name,
+    summary,
+    attributes: {
+      ...parsed.attributes,
+      slug,
+      name,
+      summary
+    },
+    body: parsed.body,
+    raw,
+    filePath,
+    relativePath: path.relative(sourcePath, filePath),
+    format: parsed.format
+  };
+}
+
+async function loadDefinitionFile(filePath, rawInput) {
+  const raw = rawInput ?? await fs.readFile(filePath, "utf8");
+  if (isMarkdownProfile(filePath)) {
+    const parsed = parseFrontmatter(raw, filePath);
+    return {
+      attributes: normalizeFlatAttributes(parsed.attributes),
+      body: parsed.body,
+      format: "markdown-frontmatter"
+    };
+  }
+
+  let document;
+  try {
+    document = YAML.parse(raw) ?? {};
+  } catch (error) {
+    throw new Error(`Could not parse YAML profile in ${filePath}: ${error.message}`);
+  }
+  if (!isObject(document)) {
+    throw new Error(`YAML profile in ${filePath} must be a mapping/object.`);
+  }
+
+  const normalized = normalizeYamlProfile(document, filePath);
+  return {
+    attributes: normalized.attributes,
+    body: normalized.body,
+    format: normalized.format
+  };
+}
+
+function normalizeYamlProfile(document, filePath) {
+  const metadata = isObject(document.metadata) ? document.metadata : {};
+  const executionPolicy = isObject(document.execution_policy) ? document.execution_policy : {};
+  const executionConfig = isObject(executionPolicy.config) ? executionPolicy.config : {};
+
+  const id = firstString(
+    document.slug,
+    document.id,
+    metadata.id,
+    profileSlugFromFilename(path.basename(filePath))
+  );
+  const name = firstString(document.name, metadata.name, titleize(id));
+  const description = firstString(document.summary, document.description, metadata.description, "");
+  const instructions = firstString(
+    document.instructions,
+    document.instruction,
+    document.prompt,
+    document.system_prompt,
+    executionConfig.instructions,
+    ""
+  );
+  const model = firstString(document.recommended_model, document.model, executionConfig.model, "");
+  const reasoningEffort = firstString(
+    document.recommended_reasoning_effort,
+    document.reasoning_effort,
+    document.model_reasoning_effort,
+    executionConfig.reasoning_effort,
+    ""
+  );
+  const recommendedModels = document.recommended_models ?? document.models ?? undefined;
+
+  const attributes = {
+    ...document,
+    slug: id,
+    id,
+    name,
+    summary: description,
+    description,
+    kind: document.kind ?? document.type ?? "operational-agent-profile"
+  };
+
+  if (model && !attributes.recommended_model) {
+    attributes.recommended_model = model;
+  }
+  if (reasoningEffort && !attributes.recommended_reasoning_effort) {
+    attributes.recommended_reasoning_effort = reasoningEffort;
+  }
+  if (recommendedModels && !attributes.recommended_models) {
+    attributes.recommended_models = recommendedModels;
+  }
+
+  return {
+    attributes,
+    body: renderYamlProfileBody(name, description, instructions),
+    format: isAgentFormat(document) ? "agent-format-yaml" : "yaml"
+  };
+}
+
+function normalizeFlatAttributes(attributes) {
+  return {
+    ...attributes,
+    summary: attributes.summary ?? attributes.description ?? ""
+  };
+}
+
+function renderYamlProfileBody(name, description, instructions) {
+  const body = instructions || description || "No instructions provided.";
+  return `# ${name}\n\n${body}`.trimEnd();
+}
+
+async function findProfileLikeFile(directory, slug) {
+  for (const suffix of PROFILE_SUFFIXES) {
+    const candidate = path.join(directory, `${slug}${suffix}`);
+    if (existsSync(candidate)) {
+      return candidate;
+    }
+  }
+  return path.join(directory, `${slug}.md`);
+}
+
+function isProfileFile(filename) {
+  return PROFILE_SUFFIXES.some((suffix) => filename.endsWith(suffix));
+}
+
+function isMarkdownProfile(filePath) {
+  return filePath.endsWith(".md");
+}
+
+function profileSlugFromFilename(filename) {
+  const suffix = PROFILE_SUFFIXES.find((value) => filename.endsWith(value));
+  return suffix ? filename.slice(0, -suffix.length) : path.basename(filename, path.extname(filename));
+}
+
+function isAgentFormat(document) {
+  return isObject(document.metadata) && isObject(document.execution_policy);
+}
+
+function isObject(value) {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function firstString(...values) {
+  for (const value of values) {
+    if (typeof value === "string" && value.trim()) {
+      return value.trim();
+    }
+  }
+  return "";
+}
+
+function titleize(slug) {
+  return String(slug)
+    .split(/[-_]+/)
+    .filter(Boolean)
+    .map((part) => `${part[0]?.toUpperCase() ?? ""}${part.slice(1)}`)
+    .join(" ");
 }
 
 export function resolvePackageRoot() {

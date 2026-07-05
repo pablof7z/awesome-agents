@@ -6,8 +6,10 @@ This file is maintained by `npm run changelog` and `npm run release`. Release en
 
 ### Fixed
 
-- Require an explicit source for `add`, `install`, and `use`; remove the hardcoded `pablof7z/touch-grass` fallback.
+- Require an explicit source for `add`, `install`, and `use`; remove the hardcoded default source fallback.
 - Replace source-specific help and documentation examples with neutral `owner/repo` examples.
+- Parse repo-neutral YAML profile files in addition to Markdown frontmatter files.
+- Replace source-specific test fixtures with neutral profile-source fixtures.
 
 ## 0.1.1 - 2026-07-05
 

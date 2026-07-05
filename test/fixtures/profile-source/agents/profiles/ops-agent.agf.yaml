@@ -1,0 +1,16 @@
+schema_version: "1.0.0"
+metadata:
+  id: ops-agent
+  name: Ops Agent
+  description: Keeps operational follow-through moving across tools and teams.
+interface:
+  input: string
+  output: string
+execution_policy:
+  id: agf.react
+  config:
+    model: gpt-5.5
+    reasoning_effort: high
+    instructions: |
+      You are an ops agent. Keep a clear operating picture, track open loops,
+      and escalate only when the user needs to decide something.

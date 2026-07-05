@@ -22,8 +22,7 @@ Product distinction:
 - `awesome-agents` installs reusable operational agent identities.
 - A profile can define prompt, model preference, tool boundaries, notes, coordination style, and harness-specific configuration.
 - Installed profiles should preserve explicit self-identity. A running
-  `chief-of-staff` profile should know it is `chief-of-staff` or at least that
-  its role is Chief of Staff.
+  profile should know its installed slug and role.
 
 The CLI should not pretend profiles are skills. It can mirror `npx skills` command shape where that helps user memory, but the artifact remains an agent profile.
 
@@ -33,5 +32,11 @@ The CLI should not pretend profiles are skills. It can mirror `npx skills` comma
 not know about or default to one source. Users must name the local path, GitHub
 shorthand, or Git URL they want to install from.
 
-The `chief-of-staff` profile is an explicit category-boundary example: it is an
-operational agent identity, not a skill.
+Product correction:
+
+- Do not intertwine source-repository concepts into the `awesome-agents`
+  codebase.
+- Source repositories provide profile artifacts; `awesome-agents` understands
+  the artifact shape and target harnesses.
+- Examples and tests should use neutral source names unless they are testing
+  source resolution itself.

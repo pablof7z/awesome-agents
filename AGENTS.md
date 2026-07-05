@@ -7,10 +7,16 @@ agent profiles into agent harnesses. It intentionally mirrors the command shape
 of `npx skills`, but installs profile artifacts for Codex, Claude Code, and
 OpenCode.
 
-The canonical source format is the `touch-grass` layout:
+The canonical source format is repo-neutral:
 
-- `agents/profiles/*.md`: Markdown profile with YAML frontmatter.
-- `agents/adapters/<harness>/*.md`: optional harness-specific metadata and notes.
+- `agents/profiles/*.agent.yaml`: preferred YAML profile definitions.
+- `agents/profiles/*.agf.yaml`: Agent Format-style YAML profile definitions.
+- `agents/profiles/*.md`: Markdown profile definitions with YAML frontmatter.
+- `agents/adapters/<harness>/*`: optional harness-specific metadata and notes.
+
+Never hard-code a particular source repository into runtime behavior, tests, or
+examples. Use neutral fixture/source names unless a test is explicitly about
+source resolution.
 
 ## Setup Commands
 

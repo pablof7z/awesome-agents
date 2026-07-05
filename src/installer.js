@@ -215,31 +215,25 @@ export async function updateInstalled(profileArgs = [], options = {}) {
 export async function initProfile(name, options = {}) {
   const slug = slugify(name || "new-agent-profile");
   const root = options.cwd ?? process.cwd();
-  const profilePath = path.join(root, "agents", "profiles", `${slug}.md`);
-  const adapterPath = path.join(root, "agents", "adapters", "codex", `${slug}.md`);
+  const profilePath = path.join(root, "agents", "profiles", `${slug}.agent.yaml`);
 
   if (!options.force) {
-    for (const target of [profilePath, adapterPath]) {
-      if (existsSync(target)) {
-        throw new Error(`${target} already exists. Pass --force to overwrite.`);
-      }
+    if (existsSync(profilePath)) {
+      throw new Error(`${profilePath} already exists. Pass --force to overwrite.`);
     }
   }
 
   const title = titleCase(slug);
-  const profileContent = `---\nslug: ${slug}\nname: ${title}\nkind: operational-agent-profile\nsummary: Describe when to use this agent profile.\nrecommended_model: inherit\nrecommended_reasoning_effort: medium\nhome_notes_template: "~/.agents/homes/${slug}/<project>/notes"\n---\n\n# ${title}\n\nDescribe the agent's mission, boundaries, tools, coordination model, notes, and reporting style.\n`;
-  const adapterContent = `---\nslug: ${slug}\nprofile: ../../profiles/${slug}.md\nharness: codex\nmodel: inherit\nreasoning_effort: medium\nrequired_skills: []\n---\n\n# Codex Adapter: ${title}\n\nLoad the canonical profile at \`agents/profiles/${slug}.md\`.\n`;
+  const profileContent = `schema: awesome-agents/v1\nid: ${slug}\nname: ${title}\ndescription: Describe when to use this agent profile.\nmodel: inherit\nreasoning_effort: medium\nhome_notes_template: "~/.agents/homes/${slug}/<project>/notes"\ninstructions: |\n  Describe the agent's mission, boundaries, tools, coordination model, notes,\n  and reporting style.\n`;
 
   if (!options.dryRun) {
     await fs.mkdir(path.dirname(profilePath), { recursive: true });
-    await fs.mkdir(path.dirname(adapterPath), { recursive: true });
     await fs.writeFile(profilePath, profileContent);
-    await fs.writeFile(adapterPath, adapterContent);
   }
 
   return {
     action: options.dryRun ? "would-init" : "initialized",
-    files: [profilePath, adapterPath]
+    files: [profilePath]
   };
 }
 

@@ -10,7 +10,11 @@ const codes = {
   profile: "\x1b[38;5;149m",
   path: "\x1b[38;5;145m",
   success: "\x1b[38;5;108m",
-  warning: "\x1b[38;5;179m"
+  warning: "\x1b[38;5;179m",
+  error: "\x1b[38;5;203m",
+  bannerA: "\x1b[38;5;111m",
+  bannerB: "\x1b[38;5;109m",
+  bannerC: "\x1b[38;5;149m"
 };
 
 export const ui = {
@@ -21,6 +25,7 @@ export const ui = {
   path: (value) => color(value, codes.path),
   success: (value) => color(value, codes.success),
   warning: (value) => color(value, codes.warning),
+  error: (value) => color(value, codes.error),
   dim: (value) => color(value, codes.dim),
   prompt: () => color("$", codes.success)
 };
@@ -46,10 +51,13 @@ function formatHelp(command) {
 }
 
 function renderHelp(definition) {
-  const lines = [
-    `${ui.bold("Usage:")} ${definition.usage}`,
-    ""
-  ];
+  const lines = [];
+
+  if (definition.banner) {
+    lines.push(...definition.banner, "");
+  }
+
+  lines.push(`${ui.bold("Usage:")} ${definition.usage}`, "");
 
   if (definition.description) {
     lines.push(definition.description, "");
@@ -147,12 +155,44 @@ function shouldUseColor() {
   return true;
 }
 
-const sourceHint = `${ui.profile("agents/profiles/*.md")} plus optional ${ui.profile("agents/adapters/<harness>/*.md")}`;
+export function formatMissingSourceError(commandName = "add") {
+  return [
+    "",
+    ` ${ui.error("ERROR")}  Missing required argument: source`,
+    "",
+    "  Usage:",
+    `    npx ${PACKAGE_NAME} ${commandName} <source> [options]`,
+    "",
+    "  Examples:",
+    `    npx ${PACKAGE_NAME} ${commandName} ${exampleSource} --agent ${exampleProfile}`,
+    `    npx ${PACKAGE_NAME} ${commandName} ./agents-source --list`,
+    "",
+    "  Tip:",
+    `    Sources contain ${stripVTControlCharacters(sourceHint)}. Use --list before installing.`,
+    ""
+  ].join("\n");
+}
+
+const sourceHint = `${ui.profile("agents/profiles/*.{agent.yaml,agf.yaml,md}")} plus optional ${ui.profile("agents/adapters/<harness>/*")}`;
 const harnesses = SUPPORTED_AGENTS.join("|");
 const exampleSource = "owner/repo";
 const exampleProfile = "triage-agent";
+const banner = [
+  color("     _                                                     ", codes.bannerA),
+  color("    /_\\ __      _____  ___  ___  _ __ ___   ___          ", codes.bannerA),
+  color("   //_\\\\ \\ /\\ / / _ \\/ __|/ _ \\| '_ ` _ \\ / _ \\         ", codes.bannerB),
+  color("  /  _  \\ V  V /  __/\\__ \\ (_) | | | | | |  __/         ", codes.bannerB),
+  color("  \\_/ \\_/\\_/\\_/ \\___||___/\\___/|_| |_| |_|\\___|         ", codes.bannerC),
+  color("                         __ _  __ _  ___ _ __ | |_ ___   ", codes.bannerC),
+  color("                        / _` |/ _` |/ _ \\ '_ \\| __/ __|  ", codes.bannerB),
+  color("                       | (_| | (_| |  __/ | | | |_\\__ \\  ", codes.bannerB),
+  color("                        \\__,_|\\__, |\\___|_| |_|\\__|___/  ", codes.bannerA),
+  color("                              |___/                       ", codes.bannerA),
+  `  ${ui.dim("Operational profiles for Codex, Claude Code, and OpenCode")}`
+];
 
 const mainHelp = {
+  banner,
   usage: `${PACKAGE_NAME} <command> [options]`,
   description: "Install reusable operational agent profiles into Codex, Claude Code, and OpenCode.",
   sections: [
@@ -242,21 +282,64 @@ const mainHelp = {
 
 const commandHelp = {
   add: {
-    usage: `${PACKAGE_NAME} add <source> [options]`,
-    description: "Install profiles from a local path, GitHub shorthand, or URL.",
+    usage: `${PACKAGE_NAME} add <source> [profile options] [target options]`,
+    description: "Install harness-native agent profile files from a repository or local checkout.",
     sections: [
       {
-        title: "Arguments:",
+        title: "Install Flow:",
         rows: [
-          { term: ui.profile("source"), description: "Local path, GitHub owner/repo, or GitHub URL" }
+          "1. Read canonical profiles from agents/profiles/*.{agent.yaml,agf.yaml,md}.",
+          "2. Merge optional harness notes from agents/adapters/<harness>/*.",
+          "3. Render Codex, Claude Code, or OpenCode files and record them in the registry."
         ]
       },
-      { title: "Options:", rows: installOptions({ includeHome: true }) },
       {
-        title: "Safety:",
+        title: "Source Forms:",
+        rows: [
+          { term: ui.path("owner/repo"), description: "Shallow-clone a GitHub repository" },
+          { term: ui.path("https://github.com/owner/repo"), description: "Use an explicit GitHub URL" },
+          { term: ui.path("./agents-source"), description: "Use a local source checkout" },
+          { term: ui.path("~/agents-source"), description: "Use a home-relative local source" }
+        ]
+      },
+      {
+        title: "Select Profiles:",
+        rows: [
+          { term: ui.option("--agent triage-agent"), description: "Preferred shorthand: install one profile slug" },
+          { term: ui.option("--profile triage-agent"), description: "Explicit profile selector" },
+          { term: ui.option("--skill triage-agent"), description: "Compatibility alias for --profile" },
+          { term: ui.option("--all"), description: "Install every source profile" },
+          { term: ui.option("--list"), description: "Show available profiles and exit" }
+        ]
+      },
+      {
+        title: "Choose Targets:",
+        rows: [
+          { term: ui.option("(default)"), description: "Codex, installed globally as a config profile" },
+          { term: ui.option("--harness opencode"), description: "Render for one harness" },
+          { term: ui.option("--harness codex claude-code"), description: "Render for multiple harnesses" },
+          { term: ui.option("--harness *"), description: "Render for every supported harness" },
+          { term: ui.option("--global"), description: "Install into the user-level harness directory" },
+          { term: ui.option("--project"), description: "Install project-local files where the harness supports it" }
+        ]
+      },
+      {
+        title: "Target Files:",
+        rows: [
+          { term: ui.command("codex"), description: `${ui.path("~/.codex/<profile>.config.toml")} (project-local Codex profiles are not supported)` },
+          { term: ui.command("claude-code"), description: `${ui.path("~/.claude/agents/<profile>.md")} or ${ui.path(".claude/agents/<profile>.md")}` },
+          { term: ui.command("opencode"), description: `${ui.path("~/.config/opencode/agents/<profile>.md")} or ${ui.path(".opencode/agents/<profile>.md")}` },
+          { term: ui.command("registry"), description: `${ui.path("~/.awesome-agents/installed.json")} or ${ui.path(".awesome-agents/installed.json")}` }
+        ]
+      },
+      {
+        title: "Safety And Output:",
         rows: [
           `Existing files are overwritten only when they contain ${ui.profile("Generated by awesome-agents")}.`,
-          `Use ${ui.option("--dry-run")} to preview writes and ${ui.option("--force")} to override the marker check.`
+          `${ui.option("--dry-run")} previews target files and registry writes.`,
+          `${ui.option("--force")} overrides the generated-marker check.`,
+          `${ui.option("--json")} prints machine-readable output without ANSI color.`,
+          `${ui.option("--home <dir>")} overrides HOME for tests and scripted installs.`
         ]
       }
     ],
@@ -269,7 +352,7 @@ const commandHelp = {
     footer: `Generated files are marked with ${ui.profile("Generated by awesome-agents")}.`
   },
   install: {
-    usage: `${PACKAGE_NAME} install <source> [options]`,
+    usage: `${PACKAGE_NAME} install <source> [profile options] [target options]`,
     description: `${ui.command("install")} is an alias for ${ui.command("add")}.`,
     sections: [
       { title: "Options:", rows: installOptions({ includeHome: true }) }

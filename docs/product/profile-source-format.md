@@ -9,6 +9,8 @@ The source format is intentionally repo-neutral:
 ```text
 agents/
   profiles/
+    <profile>.agent.yaml
+    <profile>.agf.yaml
     <profile>.md
   adapters/
     <harness>/
@@ -18,30 +20,33 @@ agents/
 Canonical profiles live at:
 
 ```text
-agents/profiles/*.md
+agents/profiles/*.{agent.yaml,agent.yml,agf.yaml,agf.yml,yaml,yml,agent.md,md}
 ```
 
-Harness adapters live at:
+Optional harness adapters live at:
 
 ```text
-agents/adapters/<harness>/*.md
+agents/adapters/<harness>/*
 ```
 
 ## Profile Files
 
-Profile files are Markdown with YAML frontmatter.
+YAML profile files are preferred. The loader should support a pragmatic subset
+of emerging YAML agent-definition shapes:
+
+- simple profile YAML with `id`, `name`, `description`, `model`, and
+  `instructions`;
+- Agent Format-style YAML with `metadata` and `execution_policy.config`;
+- Markdown files with YAML frontmatter for compatibility with `.agent.md`
+  ecosystems.
 
 The CLI should preserve canonical profile content and generate harness-specific install files. A profile is reusable product content, not local machine setup.
 
-Fixture profiles used by tests include:
+Adapters are optional. A profile should be useful without a harness adapter; an
+adapter is only an override for harness-specific metadata or instructions.
 
-- `chief-of-staff`
-- `ios-tester`
-- `ios-ux-ui-critic`
-
-The `chief-of-staff` source files are intentionally under `agents/`, not
-`skills/`, because the source format models agent profiles separately from
-loadable skills.
+Profile source files are intentionally under `agents/`, not `skills/`, because
+the source format models agent profiles separately from loadable skills.
 
 ## Source Resolution
 

@@ -169,7 +169,7 @@ function buildInstructionBody(profile, adapter, harness) {
     `- Role/name: \`${profile.name}\``,
     `- Installed for: \`${harness}\``,
     "- When asked who you are, what agent is running, or what role you are acting as, answer with this identity and role.",
-    "- This profile is a reusable operational agent profile, not local machine setup.",
+    "- This profile is a reusable operational agent profile, not a skill or local machine setup.",
     "- The runtime agent manages any profile-specific home directory and notes at task time."
   ];
 

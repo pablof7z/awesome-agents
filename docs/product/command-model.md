@@ -21,7 +21,7 @@ Accepted direction:
 The CLI supports:
 
 - `--agent <slug>` as the preferred profile selector, matching user-facing
-  language such as `npx awesome-agents add owner/repo --agent ios-tester`.
+  language such as `npx awesome-agents add owner/repo --agent triage-agent`.
 - `--profile <slug>` to select profiles explicitly.
 - `--skill <slug>` as a compatibility alias, even though the artifact is a profile.
 - `--harness <codex|claude-code|opencode|*>` to select target harnesses.
@@ -59,5 +59,5 @@ User correction:
 
 - Each installed profile should instruct the harness to identify itself by its
   installed name and role. If the user asks the running agent "who are you?" or
-  asks for `chief-of-staff`, it should know it is the `chief-of-staff` profile
-  or at least that its role is Chief of Staff.
+  asks for `triage-agent`, it should know it is the `triage-agent` profile or at
+  least that its role is Triage Agent.

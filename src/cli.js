@@ -1,6 +1,6 @@
 import { Command } from "commander";
 import { PACKAGE_NAME, PACKAGE_VERSION, SUPPORTED_AGENTS } from "./constants.js";
-import { configureHelp, ui } from "./help.js";
+import { configureHelp, formatMissingSourceError, ui } from "./help.js";
 import {
   initProfile,
   installFromSource,
@@ -137,7 +137,7 @@ export async function run(argv = process.argv) {
 function addInstallCommand(program, commandName) {
   program
     .command(commandName)
-    .argument("<source>", "Local path, GitHub owner/repo, or GitHub URL")
+    .argument("[source]", "Local path, GitHub owner/repo, or GitHub URL")
     .description(commandName === "install" ? "Alias for add" : "Install agent profiles from a source")
     .option("-g, --global", "Install globally")
     .option("-p, --project", "Install into the current project; not supported for Codex profiles")
@@ -154,6 +154,12 @@ function addInstallCommand(program, commandName) {
     .option("--json", "Output JSON")
     .option("--home <dir>", "Override HOME for path expansion")
     .action(async (source = undefined, options) => {
+      if (!source) {
+        process.stderr.write(formatMissingSourceError(commandName));
+        process.exitCode = 1;
+        return;
+      }
+
       if (options.list) {
         const profiles = await listAvailable(source, options);
         if (options.json) {

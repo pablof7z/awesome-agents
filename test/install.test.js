@@ -59,11 +59,14 @@ test("rejects project-local Codex profile installs", () => {
 });
 
 test("lists profiles from a source", () => {
-  const result = spawnSync(process.execPath, [bin, "install", "../touch-grass", "--list"], {
+  const source = path.join(root, "test", "fixtures", "profile-source");
+  const result = spawnSync(process.execPath, [bin, "install", source, "--list"], {
     cwd: root,
     encoding: "utf8",
   });
 
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /ios-tester/);
+  assert.match(result.stdout, /triage-agent/);
+  assert.match(result.stdout, /research-agent/);
+  assert.match(result.stdout, /ops-agent/);
 });

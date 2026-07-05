@@ -8,7 +8,7 @@ import { afterEach, beforeEach, test } from "node:test";
 
 const repoRoot = path.resolve(import.meta.dirname, "..");
 const bin = path.join(repoRoot, "bin", "awesome-agents.js");
-const fixture = path.join(repoRoot, "test", "fixtures", "touch-grass");
+const fixture = path.join(repoRoot, "test", "fixtures", "profile-source");
 
 let tempRoot;
 let home;
@@ -31,6 +31,7 @@ test("top-level help is grouped and colorized", () => {
   });
   assert.equal(result.status, 0, result.stderr);
 
+  assert.match(result.stdout, /Operational profiles for Codex, Claude Code, and OpenCode/);
   assert.match(result.stdout, /\x1b\[1mUsage:\x1b\[0m awesome-agents <command> \[options\]/);
   assert.match(result.stdout, /Manage Profiles:/);
   assert.match(result.stdout, /Add Options:/);
@@ -48,8 +49,27 @@ test("NO_COLOR disables ANSI in help", () => {
   assert.equal(result.status, 0, result.stderr);
 
   assert.doesNotMatch(result.stdout, /\x1b\[[0-9;]*m/);
+  assert.match(result.stdout, /Operational profiles for Codex, Claude Code, and OpenCode/);
   assert.match(result.stdout, /Usage: awesome-agents <command> \[options\]/);
   assert.match(result.stdout, /Manage Profiles:/);
+});
+
+test("add help explains the install workflow", () => {
+  const result = runCli(["add", "--help"], {
+    NO_COLOR: "",
+    FORCE_COLOR: "",
+    TERM: "xterm-256color"
+  });
+  assert.equal(result.status, 0, result.stderr);
+
+  assert.match(result.stdout, /Usage:.*awesome-agents add <source> \[profile options\] \[target options\]/s);
+  assert.match(result.stdout, /Install Flow:/);
+  assert.match(result.stdout, /Source Forms:/);
+  assert.match(result.stdout, /Select Profiles:/);
+  assert.match(result.stdout, /Choose Targets:/);
+  assert.match(result.stdout, /Target Files:/);
+  assert.match(result.stdout, /~\/\.codex\/<profile>\.config\.toml/);
+  assert.doesNotMatch(result.stdout, /Arguments:/);
 });
 
 test("lists available profiles from a local source as JSON", () => {
@@ -59,7 +79,7 @@ test("lists available profiles from a local source as JSON", () => {
   const parsed = JSON.parse(result.stdout);
   assert.deepEqual(
     parsed.profiles.map((profile) => profile.slug),
-    ["chief-of-staff", "ios-tester", "ios-ux-ui-critic"]
+    ["ops-agent", "research-agent", "triage-agent"]
   );
 });
 
@@ -68,10 +88,13 @@ test("add requires an explicit source", async () => {
   await fs.mkdir(project, { recursive: true });
   const result = runCli(["add"], {}, { cwd: project });
   assert.notEqual(result.status, 0);
-  assert.match(result.stderr, /missing required argument 'source'|Specify a source/);
-  assert.equal(existsSync(path.join(home, ".codex", "chief-of-staff.config.toml")), false);
-  assert.equal(existsSync(path.join(home, ".codex", "ios-tester.config.toml")), false);
-  assert.equal(existsSync(path.join(home, ".codex", "ios-ux-ui-critic.config.toml")), false);
+  assert.match(result.stderr, /ERROR\s+Missing required argument: source/);
+  assert.match(result.stderr, /npx awesome-agents add <source> \[options\]/);
+  assert.match(result.stderr, /npx awesome-agents add owner\/repo --agent triage-agent/);
+  assert.doesNotMatch(result.stderr, /Install Flow:/);
+  assert.equal(existsSync(path.join(home, ".codex", "ops-agent.config.toml")), false);
+  assert.equal(existsSync(path.join(home, ".codex", "research-agent.config.toml")), false);
+  assert.equal(existsSync(path.join(home, ".codex", "triage-agent.config.toml")), false);
 });
 
 test("dry-run install does not write target files or registry", () => {
@@ -81,7 +104,7 @@ test("dry-run install does not write target files or registry", () => {
     "--agent",
     "codex",
     "--profile",
-    "ios-tester",
+    "triage-agent",
     "--global",
     "--home",
     home,
@@ -92,7 +115,7 @@ test("dry-run install does not write target files or registry", () => {
 
   const parsed = JSON.parse(result.stdout);
   assert.equal(parsed.operations[0].action, "would-install");
-  assert.equal(existsSync(path.join(home, ".codex", "ios-tester.config.toml")), false);
+  assert.equal(existsSync(path.join(home, ".codex", "triage-agent.config.toml")), false);
   assert.equal(existsSync(path.join(home, ".awesome-agents", "installed.json")), false);
 });
 
@@ -103,7 +126,7 @@ test("installs a Codex profile and records it in the registry", async () => {
     "--agent",
     "codex",
     "--profile",
-    "ios-tester",
+    "triage-agent",
     "--global",
     "--home",
     home,
@@ -111,29 +134,29 @@ test("installs a Codex profile and records it in the registry", async () => {
   ]);
   assert.equal(result.status, 0, result.stderr);
 
-  const target = path.join(home, ".codex", "ios-tester.config.toml");
+  const target = path.join(home, ".codex", "triage-agent.config.toml");
   const registry = path.join(home, ".awesome-agents", "installed.json");
   assert.equal(existsSync(target), true);
   assert.equal(existsSync(registry), true);
 
   const content = await fs.readFile(target, "utf8");
   assert.match(content, /Generated by awesome-agents/);
-  assert.match(content, /name = "ios-tester"/);
-  assert.match(content, /description = "Executes iOS app flows/);
+  assert.match(content, /name = "triage-agent"/);
+  assert.match(content, /description = "Sorts incoming work/);
   assert.match(content, /model = "gpt-5\.5"/);
   assert.match(content, /developer_instructions = '''/);
 
   const installed = JSON.parse(await fs.readFile(registry, "utf8"));
-  assert.equal(installed.installs[0].profile, "ios-tester");
+  assert.equal(installed.installs[0].profile, "triage-agent");
   assert.equal(installed.installs[0].harness, "codex");
 });
 
-test("installs the chief-of-staff profile as a profile, not a skill", async () => {
+test("installs an Agent Format YAML profile as a profile, not a skill", async () => {
   const result = runCli([
     "add",
     fixture,
     "--agent",
-    "chief-of-staff",
+    "ops-agent",
     "--global",
     "--home",
     home,
@@ -141,25 +164,26 @@ test("installs the chief-of-staff profile as a profile, not a skill", async () =
   ]);
   assert.equal(result.status, 0, result.stderr);
 
-  const target = path.join(home, ".codex", "chief-of-staff.config.toml");
+  const target = path.join(home, ".codex", "ops-agent.config.toml");
   assert.equal(existsSync(target), true);
 
   const content = await fs.readFile(target, "utf8");
-  assert.match(content, /name = "chief-of-staff"/);
-  assert.match(content, /Installed identity: `chief-of-staff`/);
-  assert.match(content, /Role\/name: `Chief Of Staff`/);
+  assert.match(content, /name = "ops-agent"/);
+  assert.match(content, /Installed identity: `ops-agent`/);
+  assert.match(content, /Role\/name: `Ops Agent`/);
   assert.match(content, /operational agent profile, not a skill/);
-  assert.doesNotMatch(content, /primary_skill: chief-of-staff/);
-  assert.doesNotMatch(content, /skills\/chief-of-staff/);
+  assert.match(content, /You are an ops agent/);
+  assert.doesNotMatch(content, /primary_skill/);
+  assert.doesNotMatch(content, /skills\//);
 });
 
 test("installs a GitHub shorthand source with --agent as the profile selector", async () => {
-  const gitEnv = await createFakeGitClone(fixture, "https://github.com/pablof7z/touch-grass.git");
+  const gitEnv = await createFakeGitClone(fixture, "https://github.com/example/agent-profiles.git");
   const result = runCli([
     "add",
-    "pablof7z/touch-grass",
+    "example/agent-profiles",
     "--agent",
-    "ios-tester",
+    "triage-agent",
     "--global",
     "--home",
     home,
@@ -168,10 +192,10 @@ test("installs a GitHub shorthand source with --agent as the profile selector", 
   assert.equal(result.status, 0, result.stderr);
 
   const parsed = JSON.parse(result.stdout);
-  assert.equal(parsed.operations[0].profile, "ios-tester");
+  assert.equal(parsed.operations[0].profile, "triage-agent");
   assert.equal(parsed.operations[0].harness, "codex");
-  assert.equal(parsed.operations[0].source, "pablof7z/touch-grass");
-  assert.equal(existsSync(path.join(home, ".codex", "ios-tester.config.toml")), true);
+  assert.equal(parsed.operations[0].source, "example/agent-profiles");
+  assert.equal(existsSync(path.join(home, ".codex", "triage-agent.config.toml")), true);
 });
 
 test("uses --harness to choose a target when --agent selects the profile", async () => {
@@ -179,7 +203,7 @@ test("uses --harness to choose a target when --agent selects the profile", async
     "add",
     fixture,
     "--agent",
-    "ios-tester",
+    "triage-agent",
     "--harness",
     "opencode",
     "--global",
@@ -190,9 +214,9 @@ test("uses --harness to choose a target when --agent selects the profile", async
   assert.equal(result.status, 0, result.stderr);
 
   const parsed = JSON.parse(result.stdout);
-  assert.equal(parsed.operations[0].profile, "ios-tester");
+  assert.equal(parsed.operations[0].profile, "triage-agent");
   assert.equal(parsed.operations[0].harness, "opencode");
-  assert.equal(existsSync(path.join(home, ".config", "opencode", "agents", "ios-tester.md")), true);
+  assert.equal(existsSync(path.join(home, ".config", "opencode", "agents", "triage-agent.md")), true);
 });
 
 test("installs Claude Code and OpenCode profile renderings", async () => {
@@ -203,7 +227,7 @@ test("installs Claude Code and OpenCode profile renderings", async () => {
     "claude-code",
     "opencode",
     "--profile",
-    "ios-ux-ui-critic",
+    "research-agent",
     "--global",
     "--home",
     home,
@@ -211,26 +235,26 @@ test("installs Claude Code and OpenCode profile renderings", async () => {
   ]);
   assert.equal(result.status, 0, result.stderr);
 
-  const claudeTarget = path.join(home, ".claude", "agents", "ios-ux-ui-critic.md");
-  const opencodeTarget = path.join(home, ".config", "opencode", "agents", "ios-ux-ui-critic.md");
+  const claudeTarget = path.join(home, ".claude", "agents", "research-agent.md");
+  const opencodeTarget = path.join(home, ".config", "opencode", "agents", "research-agent.md");
   assert.equal(existsSync(claudeTarget), true);
   assert.equal(existsSync(opencodeTarget), true);
 
   const claude = await fs.readFile(claudeTarget, "utf8");
   const opencode = await fs.readFile(opencodeTarget, "utf8");
-  assert.match(claude, /name: ios-ux-ui-critic/);
+  assert.match(claude, /name: research-agent/);
   assert.match(claude, /model: opus/);
-  assert.match(claude, /Installed identity: `ios-ux-ui-critic`/);
+  assert.match(claude, /Installed identity: `research-agent`/);
   assert.match(opencode, /mode: subagent/);
   assert.match(opencode, /edit: deny/);
-  assert.match(opencode, /Installed identity: `ios-ux-ui-critic`/);
+  assert.match(opencode, /Installed identity: `research-agent`/);
 });
 
 test("use renders a single profile without installing", () => {
-  const result = runCli(["use", `${fixture}@ios-tester`, "--agent", "codex", "--home", home]);
+  const result = runCli(["use", `${fixture}@triage-agent`, "--agent", "codex", "--home", home]);
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /name = "ios-tester"/);
-  assert.equal(existsSync(path.join(home, ".codex", "ios-tester.config.toml")), false);
+  assert.match(result.stdout, /name = "triage-agent"/);
+  assert.equal(existsSync(path.join(home, ".codex", "triage-agent.config.toml")), false);
 });
 
 test("prints detected harness run instructions after install", async () => {
@@ -239,14 +263,14 @@ test("prints detected harness run instructions after install", async () => {
     "add",
     fixture,
     "--agent",
-    "chief-of-staff",
+    "ops-agent",
     "--home",
     home
   ], { PATH: fakeBin });
 
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stdout, /Run installed profiles:/);
-  assert.match(result.stdout, /chief-of-staff via codex: codex --profile chief-of-staff/);
+  assert.match(result.stdout, /ops-agent via codex: codex --profile ops-agent/);
 });
 
 test("remove deletes only generated installs", async () => {
@@ -256,17 +280,17 @@ test("remove deletes only generated installs", async () => {
     "--agent",
     "codex",
     "--profile",
-    "ios-tester",
+    "triage-agent",
     "--global",
     "--home",
     home
   ]);
   assert.equal(install.status, 0, install.stderr);
 
-  const target = path.join(home, ".codex", "ios-tester.config.toml");
+  const target = path.join(home, ".codex", "triage-agent.config.toml");
   assert.equal(existsSync(target), true);
 
-  const remove = runCli(["remove", "ios-tester", "--agent", "codex", "--global", "--home", home, "--json"]);
+  const remove = runCli(["remove", "triage-agent", "--agent", "codex", "--global", "--home", home, "--json"]);
   assert.equal(remove.status, 0, remove.stderr);
   assert.equal(existsSync(target), false);
 
