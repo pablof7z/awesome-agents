@@ -1,0 +1,44 @@
+{
+  "name": "awesome-agents",
+  "version": "0.1.0",
+  "description": "Install reusable agent profiles into Codex, Claude Code, and OpenCode.",
+  "type": "module",
+  "bin": {
+    "awesome-agents": "./bin/awesome-agents.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "docs",
+    "README.md",
+    "AGENTS.md"
+  ],
+  "scripts": {
+    "lint": "node --check bin/awesome-agents.js && node --check src/*.js && node --check test/*.test.js",
+    "test": "node --test"
+  },
+  "keywords": [
+    "agents",
+    "agent-profiles",
+    "codex",
+    "claude-code",
+    "opencode",
+    "cli"
+  ],
+  "author": "Pablo Fernandez",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pablof7z/awesome-agents.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "dependencies": {
+    "commander": "^15.0.0",
+    "yaml": "^2.9.0"
+  }
+}
