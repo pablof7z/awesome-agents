@@ -8,5 +8,16 @@ unless the user confirms them.
 
 ## Files
 
-- `awesome-agents-flow-notes.md`: living notes about command shape, source
-  format, harness targets, and open questions.
+- `product-scope.md`: What `awesome-agents` is for and how it differs from skills.
+- `command-model.md`: Command shape, `npx skills` parity, defaults, and scriptability.
+- `profile-source-format.md`: Source repositories, canonical profiles, adapters, and install sources.
+- `harness-targets.md`: Codex, Claude Code, and OpenCode rendering/target behavior.
+- `safety-and-publishing.md`: Install safety, registry behavior, verification, and npm/GitHub publish state.
+- `open-questions.md`: Unresolved product questions.
+
+## Note-Taking Rules
+
+- Split notes by product area instead of appending everything to one flow file.
+- Preserve explicit user direction and accepted implementation decisions.
+- Keep implementation details separate from product intent when possible.
+- Mark inferred future direction as an open question or proposal.
