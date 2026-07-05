@@ -99,3 +99,19 @@ npx awesome-agents list --json
 npx awesome-agents remove ios-tester --agent codex
 npx awesome-agents update ios-tester --agent codex --dry-run
 ```
+
+## Release Workflow
+
+Changes are tracked in `CHANGELOG.md` from git commit history.
+
+```bash
+npm run changelog
+npm run release:dry-run -- patch
+npm run release -- patch
+npm run release -- minor --push
+```
+
+`npm run release` bumps `package.json`, `package-lock.json`, and
+`src/constants.js`, refreshes `CHANGELOG.md`, runs lint/tests, commits
+`Release vX.Y.Z`, and creates an annotated tag. Passing `--push` pushes the
+branch and tag. It does not publish to npm.

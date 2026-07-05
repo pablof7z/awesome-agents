@@ -1,6 +1,6 @@
 {
   "name": "awesome-agents",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Install reusable agent profiles into Codex, Claude Code, and OpenCode.",
   "type": "module",
   "bin": {
@@ -9,12 +9,17 @@
   "files": [
     "bin",
     "src",
+    "scripts",
     "docs",
     "README.md",
+    "CHANGELOG.md",
     "AGENTS.md"
   ],
   "scripts": {
-    "lint": "node --check bin/awesome-agents.js && node --check src/*.js && node --check test/*.test.js",
+    "changelog": "node scripts/changelog.js --write",
+    "lint": "node --check bin/awesome-agents.js && node --check src/*.js && node --check scripts/*.js && node --check test/*.test.js",
+    "release": "node scripts/release.js",
+    "release:dry-run": "node scripts/release.js --dry-run",
     "test": "node --test"
   },
   "keywords": [

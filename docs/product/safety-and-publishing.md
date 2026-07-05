@@ -35,6 +35,18 @@ The initial scaffold was verified with:
 - local source install smoke tests
 - GitHub source dry-run install smoke tests
 
+## Release Workflow
+
+Release metadata is local and deterministic:
+
+- `npm run changelog` refreshes `CHANGELOG.md` from git commit history.
+- `npm run release -- patch|minor|major|x.y.z` bumps `package.json`,
+  `package-lock.json`, and `src/constants.js`.
+- The release script refreshes `CHANGELOG.md`, runs lint/tests, commits
+  `Release vX.Y.Z`, and creates annotated tag `vX.Y.Z`.
+- `npm run release -- patch --push` also pushes the current branch and tag.
+- The release script does not publish to npm.
+
 ## Publishing State
 
 GitHub repository:
