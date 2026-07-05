@@ -4,25 +4,27 @@
 It mirrors the useful parts of `npx skills`, but the unit is an operational
 agent profile instead of a skill.
 
-The first supported source is `touch-grass`: local at `/Users/customer/touch-grass`
-or remote as `pablof7z/touch-grass`. Profiles are read from
-`agents/profiles/*.md`, adapted for the selected harness, and installed into the
-right place for Codex, Claude Code, or OpenCode.
+Supported sources are GitHub repos, Git URLs, or local checkouts that use the
+`touch-grass` layout. Profiles are read from `agents/profiles/*.md`, adapted for
+the selected harness, and installed into the right place for Codex, Claude Code,
+or OpenCode.
 
 ## Install And Run
 
-From this repo:
+Use the CLI with `npx`:
+
+```bash
+npx awesome-agents add pablof7z/touch-grass --agent ios-tester
+npx awesome-agents add pablof7z/touch-grass --agent chief-of-staff
+npx awesome-agents add pablof7z/touch-grass --agent ios-tester --harness opencode
+```
+
+From this repo during development:
 
 ```bash
 npm install
 npm test
-node ./bin/awesome-agents.js add /Users/customer/touch-grass --agent codex --profile ios-tester --dry-run
-```
-
-Once published, the intended entrypoint is:
-
-```bash
-npx awesome-agents add pablof7z/touch-grass --agent codex --profile ios-tester
+node ./bin/awesome-agents.js add pablof7z/touch-grass --agent ios-tester --dry-run
 ```
 
 ## Commands
@@ -39,8 +41,10 @@ awesome-agents init [name]
 
 Useful install options:
 
-- `--agent codex|claude-code|opencode|*`
-- `--profile <slug>` or `--profile '*'`
+- `--agent <slug>` to select an agent profile, for example `--agent ios-tester`
+- `--profile <slug>` or `--skill <slug>` as explicit profile aliases; `--skill`
+  is command-shape compatibility and does not mean the artifact is a skill
+- `--harness codex|claude-code|opencode|*` to select target harnesses
 - `--all` to install all profiles to all supported harnesses
 - `--dry-run` to preview writes
 - `--project` for project-level install, the default
@@ -85,12 +89,13 @@ provide harness-specific metadata such as model and reasoning effort.
 ## Examples
 
 ```bash
-awesome-agents add /Users/customer/touch-grass --list
-awesome-agents add /Users/customer/touch-grass --agent codex --profile ios-tester
-awesome-agents add /Users/customer/touch-grass --agent codex --profile ios-tester --global
-awesome-agents add pablof7z/touch-grass --all --dry-run
-awesome-agents use pablof7z/touch-grass@ios-ux-ui-critic --agent claude-code
-awesome-agents list --json
-awesome-agents remove ios-tester --agent codex
-awesome-agents update ios-tester --agent codex --dry-run
+npx awesome-agents add pablof7z/touch-grass --list
+npx awesome-agents add pablof7z/touch-grass --agent ios-tester
+npx awesome-agents add pablof7z/touch-grass --agent chief-of-staff
+npx awesome-agents add pablof7z/touch-grass --agent ios-tester --harness codex --global
+npx awesome-agents add pablof7z/touch-grass --all --dry-run
+npx awesome-agents use pablof7z/touch-grass --agent ios-ux-ui-critic --harness claude-code
+npx awesome-agents list --json
+npx awesome-agents remove ios-tester --agent codex
+npx awesome-agents update ios-tester --agent codex --dry-run
 ```

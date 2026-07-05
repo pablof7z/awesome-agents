@@ -29,5 +29,9 @@ The first real source repository is `touch-grass`, which currently carries reusa
 
 - `ios-tester`
 - `ios-ux-ui-critic`
+- `chief-of-staff`
 
 `awesome-agents` should install those profiles without requiring the user to copy profile files manually.
+
+The `chief-of-staff` profile is an explicit category-boundary example: it is an
+operational agent identity, not a skill.

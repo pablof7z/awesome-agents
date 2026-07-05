@@ -35,8 +35,13 @@ The CLI should preserve canonical profile content and generate harness-specific 
 
 Current `touch-grass` profiles include:
 
+- `chief-of-staff`
 - `ios-tester`
 - `ios-ux-ui-critic`
+
+The `chief-of-staff` source files are intentionally under `agents/`, not
+`skills/`, because the source format models agent profiles separately from
+loadable skills.
 
 ## Source Resolution
 

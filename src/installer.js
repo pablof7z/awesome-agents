@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { DEFAULT_AGENT, SUPPORTED_AGENTS } from "./constants.js";
+import { AGENT_ALIASES, DEFAULT_AGENT, SUPPORTED_AGENTS } from "./constants.js";
 import { contentHash, isGeneratedContent, normalizeAgentList, renderForAgent, resolveTargetPath } from "./renderers.js";
 import { loadCatalog, materializeSource, splitSourceSpec } from "./source.js";
 import { readRegistry, registryPath, removeInstall, upsertInstall, writeRegistry } from "./registry.js";
@@ -20,10 +20,9 @@ export async function listAvailable(sourceInput, options = {}) {
 export async function installFromSource(sourceSpec, options = {}) {
   const split = splitSourceSpec(sourceSpec);
   const source = split.source;
-  const optionProfiles = normalizeProfileSelectors(options.profiles ?? options.profile ?? options.skills ?? options.skill);
-  const selectors = split.profile ? [...optionProfiles, split.profile] : optionProfiles;
+  const { selectors, harnessInput } = resolveInstallSelection(split, options);
   const scope = resolveScope(options);
-  const harnesses = normalizeAgentList(options.agents ?? options.agent, {
+  const harnesses = normalizeAgentList(harnessInput, {
     all: options.all,
     defaultAgent: DEFAULT_AGENT
   });
@@ -80,12 +79,12 @@ export async function installFromSource(sourceSpec, options = {}) {
 
 export async function useFromSource(sourceSpec, options = {}) {
   const split = splitSourceSpec(sourceSpec);
-  const profileSelector = options.profile ?? options.skill ?? split.profile;
+  const { profileSelector, harnessInput } = resolveUseSelection(split, options);
   if (!profileSelector) {
     throw new Error("Specify a profile with source@profile or --profile <profile>.");
   }
 
-  const harness = normalizeAgentList(options.agent ? [options.agent] : options.agents, {
+  const harness = normalizeAgentList(harnessInput, {
     defaultAgent: DEFAULT_AGENT
   })[0];
   const materialized = await materializeSource(split.source, options);
@@ -283,6 +282,72 @@ function normalizeProfileSelectors(values) {
     .flatMap((value) => String(value).split(","))
     .map((value) => value.trim())
     .filter(Boolean);
+}
+
+function resolveInstallSelection(split, options = {}) {
+  const selectors = [
+    ...normalizeProfileSelectors(options.profiles ?? options.profile ?? options.skills ?? options.skill)
+  ];
+  const explicitHarnessInput = firstDefined(options.harnesses, options.harness, options.targets, options.target);
+  const agentValues = normalizeProfileSelectors(options.agents ?? options.agent);
+  const agentHarnesses = [];
+
+  for (const value of agentValues) {
+    if (isHarnessSelector(value)) {
+      agentHarnesses.push(value);
+    } else {
+      selectors.push(value);
+    }
+  }
+
+  if (split.profile) {
+    selectors.push(split.profile);
+  }
+
+  return {
+    selectors,
+    harnessInput: explicitHarnessInput ?? (agentHarnesses.length > 0 ? agentHarnesses : undefined)
+  };
+}
+
+function resolveUseSelection(split, options = {}) {
+  const selectors = [
+    ...normalizeProfileSelectors(options.profiles ?? options.profile ?? options.skills ?? options.skill)
+  ];
+  const explicitHarnessInput = firstDefined(options.harnesses, options.harness, options.targets, options.target);
+  const agentValues = normalizeProfileSelectors(options.agents ?? options.agent);
+  const agentHarnesses = [];
+
+  for (const value of agentValues) {
+    if (isHarnessSelector(value)) {
+      agentHarnesses.push(value);
+    } else {
+      selectors.push(value);
+    }
+  }
+
+  if (split.profile) {
+    selectors.push(split.profile);
+  }
+
+  const uniqueSelectors = [...new Set(selectors)];
+  if (uniqueSelectors.length > 1) {
+    throw new Error(`Use renders one profile at a time. Received: ${uniqueSelectors.join(", ")}`);
+  }
+
+  return {
+    profileSelector: uniqueSelectors[0],
+    harnessInput: explicitHarnessInput ?? (agentHarnesses.length > 0 ? agentHarnesses : undefined)
+  };
+}
+
+function isHarnessSelector(value) {
+  const normalized = String(value).toLowerCase();
+  return normalized === "*" || AGENT_ALIASES.has(normalized);
+}
+
+function firstDefined(...values) {
+  return values.find((value) => value !== undefined);
 }
 
 function profileSummary(profile, source) {

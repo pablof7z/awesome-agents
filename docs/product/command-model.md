@@ -20,9 +20,13 @@ Accepted direction:
 
 The CLI supports:
 
-- `--profile <slug>` to select profiles.
+- `--agent <slug>` as the preferred profile selector, matching user-facing
+  language such as `npx awesome-agents add owner/repo --agent ios-tester`.
+- `--profile <slug>` to select profiles explicitly.
 - `--skill <slug>` as a compatibility alias, even though the artifact is a profile.
-- `--agent <codex|claude-code|opencode|*>` to select target harnesses.
+- `--harness <codex|claude-code|opencode|*>` to select target harnesses.
+- `--agent <codex|claude-code|opencode|*>` remains accepted as a legacy harness
+  selector when the value is a known harness or harness alias.
 - `--all` to install every profile.
 - `--list` to inspect source profiles before installing.
 
@@ -31,7 +35,8 @@ The CLI supports:
 Accepted implementation decision:
 
 - Install scope defaults to project to match the `npx skills` mental model and avoid surprising user-global mutation.
-- Codex is the default harness when no `--agent` is provided.
+- Codex is the default harness when no `--harness` or legacy harness-valued
+  `--agent` is provided.
 - The CLI is noninteractive in the initial scaffold.
 - `--yes` is accepted for command-shape parity, but prompts are not currently required.
 

@@ -30,7 +30,7 @@ test("lists available profiles from a local source as JSON", () => {
   const parsed = JSON.parse(result.stdout);
   assert.deepEqual(
     parsed.profiles.map((profile) => profile.slug),
-    ["ios-tester", "ios-ux-ui-critic"]
+    ["chief-of-staff", "ios-tester", "ios-ux-ui-critic"]
   );
 });
 
@@ -86,6 +86,71 @@ test("installs a Codex profile and records it in the registry", async () => {
   const installed = JSON.parse(await fs.readFile(registry, "utf8"));
   assert.equal(installed.installs[0].profile, "ios-tester");
   assert.equal(installed.installs[0].harness, "codex");
+});
+
+test("installs the chief-of-staff profile as a profile, not a skill", async () => {
+  const result = runCli([
+    "add",
+    fixture,
+    "--agent",
+    "chief-of-staff",
+    "--global",
+    "--home",
+    home,
+    "--json"
+  ]);
+  assert.equal(result.status, 0, result.stderr);
+
+  const target = path.join(home, ".codex", "agents", "chief-of-staff.toml");
+  assert.equal(existsSync(target), true);
+
+  const content = await fs.readFile(target, "utf8");
+  assert.match(content, /name = "chief-of-staff"/);
+  assert.match(content, /operational agent profile, not a skill/);
+  assert.doesNotMatch(content, /primary_skill: chief-of-staff/);
+  assert.doesNotMatch(content, /skills\/chief-of-staff/);
+});
+
+test("installs a GitHub shorthand source with --agent as the profile selector", async () => {
+  const gitEnv = await createFakeGitClone(fixture, "https://github.com/pablof7z/touch-grass.git");
+  const result = runCli([
+    "add",
+    "pablof7z/touch-grass",
+    "--agent",
+    "ios-tester",
+    "--global",
+    "--home",
+    home,
+    "--json"
+  ], gitEnv);
+  assert.equal(result.status, 0, result.stderr);
+
+  const parsed = JSON.parse(result.stdout);
+  assert.equal(parsed.operations[0].profile, "ios-tester");
+  assert.equal(parsed.operations[0].harness, "codex");
+  assert.equal(parsed.operations[0].source, "pablof7z/touch-grass");
+  assert.equal(existsSync(path.join(home, ".codex", "agents", "ios-tester.toml")), true);
+});
+
+test("uses --harness to choose a target when --agent selects the profile", async () => {
+  const result = runCli([
+    "add",
+    fixture,
+    "--agent",
+    "ios-tester",
+    "--harness",
+    "opencode",
+    "--global",
+    "--home",
+    home,
+    "--json"
+  ]);
+  assert.equal(result.status, 0, result.stderr);
+
+  const parsed = JSON.parse(result.stdout);
+  assert.equal(parsed.operations[0].profile, "ios-tester");
+  assert.equal(parsed.operations[0].harness, "opencode");
+  assert.equal(existsSync(path.join(home, ".config", "opencode", "agents", "ios-tester.md")), true);
 });
 
 test("installs Claude Code and OpenCode profile renderings", async () => {
@@ -149,7 +214,42 @@ test("remove deletes only generated installs", async () => {
   assert.deepEqual(registry.installs, []);
 });
 
-function runCli(args) {
+async function createFakeGitClone(source, expectedUrl) {
+  const fakeBin = path.join(tempRoot, "fake-bin");
+  const fakeGit = path.join(fakeBin, "git");
+  await fs.mkdir(fakeBin, { recursive: true });
+  await fs.writeFile(fakeGit, `#!/usr/bin/env node
+const fs = require("node:fs");
+const path = require("node:path");
+
+const [command, depthFlag, url, dest] = process.argv.slice(2);
+if (command !== "clone" || depthFlag !== "--depth=1") {
+  console.error(\`unexpected git args: \${process.argv.slice(2).join(" ")}\`);
+  process.exit(2);
+}
+if (url !== process.env.AWESOME_AGENTS_EXPECTED_URL) {
+  console.error(\`unexpected git url: \${url}\`);
+  process.exit(2);
+}
+
+for (const entry of fs.readdirSync(process.env.AWESOME_AGENTS_FAKE_SOURCE)) {
+  fs.cpSync(
+    path.join(process.env.AWESOME_AGENTS_FAKE_SOURCE, entry),
+    path.join(dest, entry),
+    { recursive: true, force: true }
+  );
+}
+`);
+  await fs.chmod(fakeGit, 0o755);
+
+  return {
+    AWESOME_AGENTS_EXPECTED_URL: expectedUrl,
+    AWESOME_AGENTS_FAKE_SOURCE: source,
+    PATH: `${fakeBin}${path.delimiter}${process.env.PATH ?? ""}`
+  };
+}
+
+function runCli(args, envOverrides = {}) {
   return spawnSync(process.execPath, [bin, ...args], {
     cwd: repoRoot,
     encoding: "utf8",
@@ -159,7 +259,8 @@ function runCli(args) {
       CODEX_HOME: "",
       CLAUDE_HOME: "",
       OPENCODE_CONFIG_DIR: "",
-      XDG_CONFIG_HOME: ""
+      XDG_CONFIG_HOME: "",
+      ...envOverrides
     }
   });
 }
