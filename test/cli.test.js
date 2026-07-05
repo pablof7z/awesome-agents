@@ -86,7 +86,7 @@ test("lists available profiles from a local source as JSON", () => {
 test("add requires an explicit source", async () => {
   const project = path.join(tempRoot, "project");
   await fs.mkdir(project, { recursive: true });
-  const result = runCli(["add"], {}, { cwd: project });
+  const result = runCli(["add"], { NO_COLOR: "1" }, { cwd: project });
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /ERROR\s+Missing required argument: source/);
   assert.match(result.stderr, /npx awesome-agents add <source> \[options\]/);
@@ -266,7 +266,7 @@ test("prints detected harness run instructions after install", async () => {
     "ops-agent",
     "--home",
     home
-  ], { PATH: fakeBin });
+  ], { PATH: fakeBin, NO_COLOR: "1" });
 
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stdout, /Run installed profiles:/);
