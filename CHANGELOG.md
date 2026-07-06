@@ -2,6 +2,15 @@
 
 This file is maintained by `npm run changelog` and `npm run release`. Release entries are generated from git commit history.
 
+## 0.1.6 - 2026-07-06
+
+Changes since `v0.1.5`.
+
+### Changed
+
+- Align harness detection docs (70a1f8e)
+- Improve agent install workflow (61470fc)
+
 ## 0.1.5 - 2026-07-06
 
 Changes since `v0.1.4`.
