@@ -105,9 +105,9 @@ function renderCodex(profile, context) {
     `# ${GENERATED_MARKER}.`,
     `# Source: ${context.source}`,
     `# Profile: ${profile.slug}`,
-    "",
-    `name = ${tomlString(profile.slug)}`,
-    `description = ${tomlString(profile.summary || profile.name)}`
+    `# Display name: ${tomlComment(profile.name)}`,
+    `# Summary: ${tomlComment(profile.summary || profile.name)}`,
+    ""
   ];
 
   if (model && model !== "inherit") {
@@ -221,6 +221,10 @@ function chooseOpenCodeModel(profile) {
 
 function tomlString(value) {
   return JSON.stringify(String(value));
+}
+
+function tomlComment(value) {
+  return String(value).replace(/\s+/g, " ").trim();
 }
 
 function tomlMultiline(value) {

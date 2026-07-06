@@ -31,7 +31,10 @@ test("installs a local profile into a global Codex config file", () => {
   const target = path.join(home, ".codex", "sample.config.toml");
   assert.equal(fs.existsSync(target), true);
   const content = fs.readFileSync(target, "utf8");
-  assert.match(content, /name = "sample"/);
+  assert.match(content, /# Profile: sample/);
+  assert.match(content, /# Display name: Sample Agent/);
+  assert.doesNotMatch(content, /^name = /m);
+  assert.doesNotMatch(content, /^description = /m);
   assert.match(content, /model = "gpt-5.5"/);
   assert.match(content, /developer_instructions = /);
 });

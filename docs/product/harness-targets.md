@@ -29,10 +29,11 @@ file from `CODEX_HOME`.
 
 The generated TOML includes:
 
-- `name`
-- `description`
 - optional model settings
 - `developer_instructions`
+
+Profile name and summary are emitted as comments, not TOML keys, because Codex
+rejects unknown configuration fields under strict config parsing.
 
 ## Claude Code
 
