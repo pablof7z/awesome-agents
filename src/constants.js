@@ -16,3 +16,10 @@ export const AGENT_ALIASES = new Map([
   ["opencode", "opencode"],
   ["open-code", "opencode"]
 ]);
+
+// The CLI binary used to detect whether a harness is available on PATH.
+export const HARNESS_COMMANDS = new Map([
+  ["codex", "codex"],
+  ["claude-code", "claude"],
+  ["opencode", "opencode"]
+]);

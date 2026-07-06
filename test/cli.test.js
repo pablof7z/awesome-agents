@@ -159,6 +159,8 @@ test("installs an Agent Format YAML profile as a profile, not a skill", async ()
     fixture,
     "--agent",
     "ops-agent",
+    "--harness",
+    "codex",
     "--global",
     "--home",
     home,
@@ -200,6 +202,8 @@ test("installs a GitHub shorthand source with --agent as the profile selector", 
     "example/agent-profiles",
     "--agent",
     "triage-agent",
+    "--harness",
+    "codex",
     "--global",
     "--home",
     home,
@@ -291,6 +295,70 @@ test("prints detected harness run instructions after install", async () => {
   assert.match(result.stdout, /ops-agent via codex: codex --profile ops-agent/);
 });
 
+test("defaults to installing every harness detected on PATH", async () => {
+  const fakeBin = await createFakeCommands(["claude", "opencode"]);
+  const result = runCli([
+    "add",
+    fixture,
+    "--agent",
+    "ops-agent",
+    "--global",
+    "--home",
+    home,
+    "--json"
+  ], { PATH: fakeBin });
+  assert.equal(result.status, 0, result.stderr);
+
+  const parsed = JSON.parse(result.stdout);
+  assert.deepEqual(parsed.operations.map((operation) => operation.harness).sort(), ["claude-code", "opencode"]);
+  assert.equal(existsSync(path.join(home, ".claude", "agents", "ops-agent.md")), true);
+  assert.equal(existsSync(path.join(home, ".config", "opencode", "agents", "ops-agent.md")), true);
+  assert.equal(existsSync(path.join(home, ".codex", "ops-agent.config.toml")), false);
+});
+
+test("falls back to Codex when no harness CLI is detected on PATH", async () => {
+  const emptyBin = path.join(tempRoot, "empty-bin");
+  await fs.mkdir(emptyBin, { recursive: true });
+  const result = runCli([
+    "add",
+    fixture,
+    "--agent",
+    "ops-agent",
+    "--global",
+    "--home",
+    home,
+    "--json"
+  ], { PATH: emptyBin });
+  assert.equal(result.status, 0, result.stderr);
+
+  const parsed = JSON.parse(result.stdout);
+  assert.deepEqual(parsed.operations.map((operation) => operation.harness), ["codex"]);
+  assert.equal(existsSync(path.join(home, ".codex", "ops-agent.config.toml")), true);
+});
+
+test("--harness limits install to a single harness even when others are detected on PATH", async () => {
+  const fakeBin = await createFakeCommands(["codex", "claude", "opencode"]);
+  const result = runCli([
+    "add",
+    fixture,
+    "--agent",
+    "ops-agent",
+    "--harness",
+    "opencode",
+    "--global",
+    "--home",
+    home,
+    "--json"
+  ], { PATH: fakeBin });
+  assert.equal(result.status, 0, result.stderr);
+
+  const parsed = JSON.parse(result.stdout);
+  assert.deepEqual(parsed.operations.map((operation) => operation.harness), ["opencode"]);
+  assert.equal(existsSync(path.join(home, ".config", "opencode", "agents", "ops-agent.md")), true);
+  assert.equal(existsSync(path.join(home, ".codex", "ops-agent.config.toml")), false);
+  assert.equal(existsSync(path.join(home, ".claude", "agents", "ops-agent.md")), false);
+});
+
 test("remove deletes only generated installs", async () => {
   const install = runCli([
     "add",
@@ -317,11 +385,18 @@ test("remove deletes only generated installs", async () => {
 });
 
 async function createFakeCommand(command) {
-  const fakeBin = path.join(tempRoot, `fake-${command}-bin`);
-  const fakeCommand = path.join(fakeBin, command);
+  const fakeBin = await createFakeCommands([command]);
+  return fakeBin;
+}
+
+async function createFakeCommands(commands) {
+  const fakeBin = path.join(tempRoot, `fake-bin-${commands.join("-")}`);
   await fs.mkdir(fakeBin, { recursive: true });
-  await fs.writeFile(fakeCommand, "#!/bin/sh\nexit 0\n");
-  await fs.chmod(fakeCommand, 0o755);
+  for (const command of commands) {
+    const fakeCommand = path.join(fakeBin, command);
+    await fs.writeFile(fakeCommand, "#!/bin/sh\nexit 0\n");
+    await fs.chmod(fakeCommand, 0o755);
+  }
   return fakeBin;
 }
 

@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import os from "node:os";
 import path from "node:path";
-import { AGENT_ALIASES, GENERATED_MARKER, SUPPORTED_AGENTS } from "./constants.js";
+import { AGENT_ALIASES, DEFAULT_AGENT, GENERATED_MARKER, SUPPORTED_AGENTS } from "./constants.js";
 import { stringifyFrontmatter } from "./frontmatter.js";
 import { expandHome } from "./source.js";
 
@@ -20,7 +20,8 @@ export function normalizeAgentList(input, options = {}) {
 
   const rawAgents = flattenValues(input);
   if (rawAgents.length === 0) {
-    return [options.defaultAgent ?? "codex"];
+    const fallback = arrayify(options.defaultAgent);
+    return fallback.length > 0 ? fallback : [DEFAULT_AGENT];
   }
 
   if (rawAgents.includes("*")) {

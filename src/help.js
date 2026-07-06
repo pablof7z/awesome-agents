@@ -315,7 +315,7 @@ const commandHelp = {
       {
         title: "Choose Targets:",
         rows: [
-          { term: ui.option("(default)"), description: "Codex, installed globally as a config profile" },
+          { term: ui.option("(default)"), description: "Every harness detected on PATH (codex, claude, opencode); falls back to Codex if none are found" },
           { term: ui.option("--harness opencode"), description: "Render for one harness" },
           { term: ui.option("--harness codex claude-code"), description: "Render for multiple harnesses" },
           { term: ui.option("--harness *"), description: "Render for every supported harness" },

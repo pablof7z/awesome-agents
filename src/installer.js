@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { AGENT_ALIASES, DEFAULT_AGENT, SUPPORTED_AGENTS } from "./constants.js";
+import { AGENT_ALIASES, HARNESS_COMMANDS, SUPPORTED_AGENTS } from "./constants.js";
 import { contentHash, isGeneratedContent, normalizeAgentList, renderForAgent, resolveTargetPath } from "./renderers.js";
 import { expandHome, loadCatalog, materializeSource, splitSourceSpec } from "./source.js";
 import { readRegistry, registryPath, removeInstall, upsertInstall, writeRegistry } from "./registry.js";
@@ -24,7 +24,7 @@ export async function installFromSource(sourceSpec, options = {}) {
   const { selectors, harnessInput } = resolveInstallSelection(split, options);
   const harnesses = normalizeAgentList(harnessInput, {
     all: options.all,
-    defaultAgent: DEFAULT_AGENT
+    defaultAgent: detectAvailableHarnesses()
   });
   const scope = resolveScope(options, harnesses);
 
@@ -92,7 +92,7 @@ export async function useFromSource(sourceSpec, options = {}) {
   }
 
   const harness = normalizeAgentList(harnessInput, {
-    defaultAgent: DEFAULT_AGENT
+    defaultAgent: detectAvailableHarnesses()
   })[0];
   const materialized = await materializeSource(split.source, options);
   try {
@@ -342,6 +342,10 @@ function runInstructionForOperation(operation, env) {
   }
 
   return undefined;
+}
+
+function detectAvailableHarnesses(env = process.env) {
+  return SUPPORTED_AGENTS.filter((harness) => commandExists(HARNESS_COMMANDS.get(harness), env));
 }
 
 function commandExists(command, env) {

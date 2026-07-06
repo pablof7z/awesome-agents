@@ -43,7 +43,9 @@ Useful install options:
 - `--agent <slug>` to select an agent profile, for example `--agent triage-agent`
 - `--profile <slug>` or `--skill <slug>` as explicit profile aliases; `--skill`
   is command-shape compatibility and does not mean the artifact is a skill
-- `--harness codex|claude-code|opencode|*` to select target harnesses
+- `--harness codex|claude-code|opencode|*` to select target harnesses; without
+  it, the CLI installs to every harness whose CLI it finds on `PATH`
+  (falling back to Codex if none are found)
 - `--all` to install all profiles to all supported harnesses
 - `--dry-run` to preview writes
 - `--project` for project-level install where supported; Codex profiles install globally

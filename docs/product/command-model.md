@@ -38,8 +38,12 @@ Accepted implementation decision:
 - Codex is an exception because `codex --profile <name>` loads
   `$CODEX_HOME/<name>.config.toml`. Codex profile installs should use that
   user-level config-layer target.
-- Codex is the default harness when no `--harness` or legacy harness-valued
-  `--agent` is provided.
+- When no `--harness` or legacy harness-valued `--agent` is provided, the CLI
+  installs to every supported harness whose CLI is detected on `PATH` (checks
+  for `codex`, `claude`, `opencode`). If none are detected, it falls back to
+  Codex only.
+- `--harness <harness>` (or a harness-valued `--agent`) narrows the install to
+  that single harness, overriding detection.
 - The CLI is noninteractive in the initial scaffold.
 - `--yes` is accepted for command-shape parity, but prompts are not currently required.
 
