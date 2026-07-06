@@ -316,7 +316,7 @@ const commandHelp = {
       {
         title: "Choose Targets:",
         rows: [
-          { term: ui.option("(auto-detect)"), description: "Every harness detected on PATH; interactive multi-detect opens a checked-by-default selector" },
+          { term: ui.option("(auto-detect)"), description: "Every harness detected on PATH; interactive multi-detect opens a checked selector; pass --harness when none are detected" },
           { term: ui.option("--harness opencode"), description: "Render for one harness" },
           { term: ui.option("--harness codex tenex-edge"), description: "Render for multiple harnesses" },
           { term: ui.option("--harness *"), description: "Render for every supported harness" },

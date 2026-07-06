@@ -45,7 +45,7 @@ Accepted implementation decision:
   interactive installs open a checkbox selector with every detected harness
   selected by default; noninteractive, `--json`, and `--yes` installs use every
   detected harness.
-- If no harness is detected, fall back to Codex only.
+- If no harness is detected, fail with a clear message asking for `--harness`.
 - `--harness <harness>` (or a harness-valued `--agent`) overrides detection.
 
 ## Scriptability
