@@ -10,6 +10,7 @@ The source format is intentionally repo-neutral:
 agents/
   <profile>/
     agent.yaml
+    skills/
     scripts/
     references/
 ```
@@ -27,6 +28,20 @@ agents/<profile>/scripts/*
 agents/<profile>/references/*
 ```
 
+Immediately relevant skills can be declared in the profile definition:
+
+```yaml
+skills:
+  - gh-pages-publisher
+  - pablof7z/tenex-edge basic-skill
+```
+
+Bare skill names resolve from the profile directory, then the source checkout,
+then from `~/.agents/skills`. Source-qualified entries use the same source plus
+skill selector shape as `npx skills add <source> --skill <skill>`. Installed
+skills are copied into `~/.agents/homes/<profile>/skills/<skill>` and appended
+to the rendered agent prompt with complete paths.
+
 ## Profile Files
 
 YAML profile files are preferred. The loader should support a pragmatic subset
@@ -43,6 +58,8 @@ The CLI should preserve canonical profile content and generate harness-specific 
 Agent-owned scripts and references should be installed into
 `~/.agents/homes/<profile>/scripts` and
 `~/.agents/homes/<profile>/references`.
+Declared skills should be installed into
+`~/.agents/homes/<profile>/skills/<skill>`.
 
 Profile source files are intentionally under `agents/`, not `skills/`, because
 the source format models agent profiles separately from loadable skills.

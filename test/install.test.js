@@ -61,6 +61,35 @@ test("rejects project-local Codex profile installs", () => {
   assert.equal(fs.existsSync(path.join(project, ".codex", "agents", "sample.toml")), false);
 });
 
+test("rejects project-local tenex-edge profile installs", () => {
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), "awesome-agents-test-"));
+  const source = path.join(temp, "source");
+  const home = path.join(temp, "home");
+  fs.mkdirSync(path.join(source, "agents", "profiles"), { recursive: true });
+  fs.mkdirSync(home, { recursive: true });
+  fs.writeFileSync(
+    path.join(source, "agents", "profiles", "sample.md"),
+    `---\nslug: sample\nname: Sample Agent\nkind: operational-agent-profile\nsummary: Tests things.\n---\n\n# Sample Agent\n\nDo useful work.\n`,
+    "utf8",
+  );
+
+  const project = path.join(temp, "project");
+  fs.mkdirSync(project);
+  const result = spawnSync(process.execPath, [bin, "install", source, "--profile", "sample", "--agent", "tenex-edge", "--project", "--home", home], {
+    cwd: project,
+    encoding: "utf8",
+    env: {
+      ...process.env,
+      HOME: home,
+      TENEX_EDGE_HOME: "",
+    },
+  });
+
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /tenex-edge agents are machine-local/);
+  assert.equal(fs.existsSync(path.join(home, ".tenex-edge", "agents", "sample.json")), false);
+});
+
 test("lists profiles from a source", () => {
   const source = path.join(root, "test", "fixtures", "profile-source");
   const result = spawnSync(process.execPath, [bin, "install", source, "--list"], {

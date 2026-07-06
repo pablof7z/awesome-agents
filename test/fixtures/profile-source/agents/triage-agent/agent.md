@@ -6,6 +6,8 @@ summary: Sorts incoming work, identifies blockers, and routes tasks to the right
 recommended_model: gpt-5.5
 recommended_reasoning_effort: medium
 home_notes_template: "~/.agents/homes/triage-agent/<project>/notes"
+skills:
+  - gh-pages-publisher
 ---
 
 # Triage Agent

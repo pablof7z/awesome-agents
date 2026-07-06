@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import os from "node:os";
 import path from "node:path";
-import { AGENT_ALIASES, DEFAULT_AGENT, GENERATED_MARKER, SUPPORTED_AGENTS } from "./constants.js";
+import { AGENT_ALIASES, GENERATED_MARKER, SUPPORTED_AGENTS } from "./constants.js";
 import { stringifyFrontmatter } from "./frontmatter.js";
 import { expandHome } from "./source.js";
 
@@ -20,8 +20,7 @@ export function normalizeAgentList(input, options = {}) {
 
   const rawAgents = flattenValues(input);
   if (rawAgents.length === 0) {
-    const fallback = arrayify(options.defaultAgent);
-    return fallback.length > 0 ? fallback : [DEFAULT_AGENT];
+    return arrayify(options.defaultAgent);
   }
 
   if (rawAgents.includes("*")) {
@@ -41,6 +40,9 @@ export function renderForAgent(profile, agent, context) {
   }
   if (normalized === "opencode") {
     return renderOpenCode(profile, context);
+  }
+  if (normalized === "tenex-edge") {
+    return renderTenexEdge(profile, context);
   }
   throw new Error(`Unsupported agent "${agent}"`);
 }
@@ -84,6 +86,15 @@ export function resolveTargetPath(profile, agent, options = {}) {
         ? path.resolve(expandHome(process.env.OPENCODE_CONFIG_DIR, home))
         : path.join(process.env.XDG_CONFIG_HOME ? path.resolve(expandHome(process.env.XDG_CONFIG_HOME, home)) : path.join(home, ".config"), "opencode");
     return path.join(opencodeHome, "agents", `${profile.slug}.md`);
+  }
+
+  if (normalized === "tenex-edge") {
+    const tenexEdgeHome = options.tenexEdgeHome
+      ? path.resolve(expandHome(options.tenexEdgeHome, home))
+      : process.env.TENEX_EDGE_HOME
+        ? path.resolve(expandHome(process.env.TENEX_EDGE_HOME, home))
+        : path.join(home, ".tenex-edge");
+    return path.join(tenexEdgeHome, "agents", `${profile.slug}.json`);
   }
 
   throw new Error(`Unsupported agent "${agent}"`);
@@ -160,6 +171,38 @@ function renderOpenCode(profile, context) {
   return stringifyFrontmatter(attributes, `${marker}\n\n${buildInstructionBody(profile, undefined, "opencode")}`);
 }
 
+function renderTenexEdge(profile, context) {
+  const existing = tenexEdgeKeyMaterial(context.existingContent);
+  const keyMaterial = existing ?? generateNostrKeypair();
+  const agent = {
+    description: profile.summary || profile.name,
+    prompt: buildInstructionBody(profile, profile.adapters["tenex-edge"] ?? profile.adapters["claude-code"], "tenex-edge")
+  };
+  const model = chooseClaudeModel(profile);
+  const effort = profile.attributes.recommended_reasoning_effort;
+
+  if (model && model !== "inherit") {
+    agent.model = model;
+  }
+  if (effort && effort !== "inherit" && ["low", "medium", "high", "xhigh", "max"].includes(effort)) {
+    agent.effort = effort;
+  }
+
+  const stored = {
+    slug: profile.slug,
+    secret_key: keyMaterial.secret_key,
+    public_key: keyMaterial.public_key,
+    created_at: keyMaterial.created_at ?? Math.floor(Date.now() / 1000),
+    command: ["claude"],
+    agent,
+    byline: profile.summary || profile.name,
+    managed_by: GENERATED_MARKER,
+    source: context.source
+  };
+
+  return `${JSON.stringify(stored, null, 2)}\n`;
+}
+
 function buildInstructionBody(profile, adapter, harness) {
   const parts = [
     profile.body.trimEnd(),
@@ -173,6 +216,20 @@ function buildInstructionBody(profile, adapter, harness) {
     "- This profile is a reusable operational agent profile, not a skill or local machine setup.",
     "- The runtime agent manages any profile-specific home directory and notes at task time."
   ];
+
+  if (profile.installedSkills?.length) {
+    const skillBase = path.join(path.dirname(profile.installedSkills[0].path), "<skill>");
+    parts.push(
+      "",
+      "## Immediately Relevant Skills",
+      "",
+      `Immediately relevant skills; you should load these right away from \`${skillBase}\`.`,
+      ""
+    );
+    for (const skill of profile.installedSkills) {
+      parts.push(`- \`${skill.name}\`: \`${skill.path}\``);
+    }
+  }
 
   if (adapter?.body) {
     parts.push("", "## Harness Adapter", "", adapter.body.trimEnd());
@@ -218,6 +275,57 @@ function chooseOpenCodeModel(profile) {
     ...arrayify(profile.attributes.recommended_models)
   ].filter(Boolean).map(String);
   return candidates.find((model) => model.includes("/"));
+}
+
+function tenexEdgeKeyMaterial(content) {
+  if (!content) {
+    return undefined;
+  }
+
+  let parsed;
+  try {
+    parsed = JSON.parse(content);
+  } catch {
+    return undefined;
+  }
+
+  if (!isHex64(parsed.secret_key)) {
+    return undefined;
+  }
+
+  const derived = derivePublicKey(parsed.secret_key);
+  if (!derived) {
+    return undefined;
+  }
+
+  return {
+    secret_key: parsed.secret_key,
+    public_key: isHex64(parsed.public_key) ? parsed.public_key : derived,
+    created_at: Number.isInteger(parsed.created_at) ? parsed.created_at : undefined
+  };
+}
+
+function generateNostrKeypair() {
+  const ecdh = crypto.createECDH("secp256k1");
+  const publicKey = ecdh.generateKeys(undefined, "uncompressed");
+  return {
+    secret_key: ecdh.getPrivateKey("hex"),
+    public_key: publicKey.subarray(1, 33).toString("hex")
+  };
+}
+
+function derivePublicKey(secretKey) {
+  try {
+    const ecdh = crypto.createECDH("secp256k1");
+    ecdh.setPrivateKey(Buffer.from(secretKey, "hex"));
+    return ecdh.getPublicKey(undefined, "uncompressed").subarray(1, 33).toString("hex");
+  } catch {
+    return undefined;
+  }
+}
+
+function isHex64(value) {
+  return typeof value === "string" && /^[0-9a-fA-F]{64}$/.test(value);
 }
 
 function tomlString(value) {

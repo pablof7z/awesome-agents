@@ -7,7 +7,7 @@ agent profile instead of a skill.
 Supported sources are GitHub repos, Git URLs, or local checkouts that use the
 agent-profile source layout. Profiles are read from YAML or Markdown files under
 `agents/<slug>/`, adapted for the selected harness, and installed into the
-right place for Codex, Claude Code, or OpenCode.
+right place for Codex, Claude Code, OpenCode, or tenex-edge.
 
 ## Install And Run
 
@@ -15,7 +15,7 @@ Use the CLI with `npx`:
 
 ```bash
 npx awesome-agents add owner/repo --agent triage-agent
-npx awesome-agents add owner/repo --agent triage-agent --harness opencode
+npx awesome-agents add owner/repo --agent triage-agent --harness tenex-edge
 ```
 
 From this repo during development:
@@ -43,19 +43,25 @@ Useful install options:
 - `--agent <slug>` to select an agent profile, for example `--agent triage-agent`
 - `--profile <slug>` or `--skill <slug>` as explicit profile aliases; `--skill`
   is command-shape compatibility and does not mean the artifact is a skill
-- `--harness codex|claude-code|opencode|*` to select target harnesses; without
-  it, the CLI installs to every harness whose CLI it finds on `PATH`
-  (falling back to Codex if none are found)
+- omit a profile selector in an interactive terminal to choose source profiles
+  from a checkbox list; every profile is selected by default
+- `--yes` to accept detected profile and harness selections without opening selectors
+- `--harness codex|claude-code|opencode|tenex-edge|*` to select target harnesses;
+  without it, the CLI detects harness CLIs on `PATH`; interactive multi-detect
+  opens a checkbox selector with every detected harness selected, and
+  noninteractive installs use every detected harness. If none are detected, pass
+  `--harness`.
 - `--all` to install all profiles to all supported harnesses
 - `--dry-run` to preview writes
-- `--project` for project-level install where supported; Codex profiles install globally
+- `--project` for project-level install where supported; Codex and tenex-edge install globally
 - `--global` for user-level install
 - `--list` to inspect available source profiles without installing
 
 Human-readable output uses subtle ANSI color. Set `NO_COLOR=1` to disable color,
-or pass `--json` for machine-readable output. After an install, the CLI also
-prints run commands for target harness CLIs it finds on `PATH`, such as
-`codex --profile <profile>` or `claude --agent <profile>`.
+or pass `--json` for machine-readable output. After an install, the CLI groups
+run commands by profile for target harness CLIs it finds on `PATH`, such as
+`codex --profile <profile>`, `claude --agent <profile>`, or
+`tenex-edge launch <profile>`.
 
 ## Harness Targets
 
@@ -64,12 +70,14 @@ Project installs write to:
 - Codex: not supported; Codex profiles load from user config
 - Claude Code: `.claude/agents/<profile>.md`
 - OpenCode: `.opencode/agents/<profile>.md`
+- tenex-edge: not supported; tenex-edge agents are machine-local
 
 Global installs write to:
 
 - Codex: `$CODEX_HOME/<profile>.config.toml`, or `~/.codex/<profile>.config.toml`
 - Claude Code: `$CLAUDE_HOME/agents/<profile>.md`, or `~/.claude/agents/<profile>.md`
 - OpenCode: `$OPENCODE_CONFIG_DIR/agents/<profile>.md`, or `~/.config/opencode/agents/<profile>.md`
+- tenex-edge: `$TENEX_EDGE_HOME/agents/<profile>.json`, or `~/.tenex-edge/agents/<profile>.json`
 
 The CLI keeps its own registry at `.awesome-agents/installed.json` for project
 installs or `~/.awesome-agents/installed.json` for global installs. `list`,
@@ -95,6 +103,9 @@ agents/
     agent.yaml
   ops-agent/
     agent.agf.yaml
+    skills/
+      gh-pages-publisher/
+        SKILL.md
     scripts/
       heartbeat.sh
     references/
@@ -105,6 +116,19 @@ YAML profile files are preferred. The loader also accepts Markdown files with
 YAML frontmatter for compatibility with tools that use `.agent.md`-style
 profiles. Agent-owned `scripts/` and `references/` are installed into
 `~/.agents/homes/<slug>/scripts` and `~/.agents/homes/<slug>/references`.
+Profiles may also declare immediately relevant skills:
+
+```yaml
+skills:
+  - gh-pages-publisher
+  - pablof7z/tenex-edge basic-skill
+```
+
+Bare skill names are resolved from the profile directory, then the source
+checkout, then `~/.agents/skills`. Source-qualified entries use the same source
+plus skill selector shape as `npx skills add <source> --skill <skill>`.
+Declared skills are copied into `~/.agents/homes/<slug>/skills/<skill>` and
+listed with complete paths in the installed agent prompt.
 
 ## Examples
 
@@ -112,6 +136,7 @@ profiles. Agent-owned `scripts/` and `references/` are installed into
 npx awesome-agents add owner/repo --list
 npx awesome-agents add owner/repo --agent triage-agent
 npx awesome-agents add owner/repo --agent triage-agent --harness codex --global
+npx awesome-agents add owner/repo --agent triage-agent --harness tenex-edge
 npx awesome-agents add owner/repo --all --dry-run
 npx awesome-agents use owner/repo --agent triage-agent --harness claude-code
 npx awesome-agents list --json

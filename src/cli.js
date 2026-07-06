@@ -1,5 +1,7 @@
 import { Command } from "commander";
-import { PACKAGE_NAME, PACKAGE_VERSION, SUPPORTED_AGENTS } from "./constants.js";
+import checkbox from "@inquirer/checkbox";
+import { stripVTControlCharacters } from "node:util";
+import { HARNESS_COMMANDS, PACKAGE_NAME, PACKAGE_VERSION, SUPPORTED_AGENTS } from "./constants.js";
 import { configureHelp, formatMissingSourceError, ui } from "./help.js";
 import {
   initProfile,
@@ -15,7 +17,7 @@ export async function run(argv = process.argv) {
   const program = new Command();
   program
     .name(PACKAGE_NAME)
-    .description("Install reusable agent profiles into Codex, Claude Code, and OpenCode.")
+    .description("Install reusable agent profiles into Codex, Claude Code, OpenCode, and tenex-edge.")
     .version(PACKAGE_VERSION, "-v, --version")
     .helpOption("-h, --help", "Show this help message")
     .showHelpAfterError();
@@ -140,14 +142,14 @@ function addInstallCommand(program, commandName) {
     .argument("[source]", "Local path, GitHub owner/repo, or GitHub URL")
     .description(commandName === "install" ? "Alias for add" : "Install agent profiles from a source")
     .option("-g, --global", "Install globally")
-    .option("-p, --project", "Install into the current project; not supported for Codex profiles")
+    .option("-p, --project", "Install into the current project; not supported for Codex or tenex-edge profiles")
     .option("-a, --agent <agents...>", "Agent profile slugs to install; accepts harness names for backward compatibility")
     .option("--harness <harnesses...>", `Target harnesses (${SUPPORTED_AGENTS.join(", ")}, or *)`)
     .option("--target <harnesses...>", "Compatibility alias for --harness")
     .option("-s, --profile <profiles...>", "Profile slugs to install (or *)")
     .option("--skill <profiles...>", "Compatibility alias for --profile")
     .option("-l, --list", "List available profiles in the source without installing")
-    .option("-y, --yes", "Accepted for npx skills parity; prompts are not used")
+    .option("-y, --yes", "Accept detected profile and harness selections without opening selectors")
     .option("--all", "Install all profiles to all supported agents")
     .option("--dry-run", "Print planned installs without writing files")
     .option("--force", "Allow overwriting files without the generated marker")
@@ -170,7 +172,11 @@ function addInstallCommand(program, commandName) {
         return;
       }
 
-      const result = await installFromSource(source, options);
+      const result = await installFromSource(source, {
+        ...options,
+        chooseProfiles: shouldPromptForProfiles(options) ? promptProfileSelection : undefined,
+        chooseHarnesses: shouldPromptForHarnesses(options) ? promptHarnessSelection : undefined
+      });
       if (options.json) {
         printJson(result);
       } else {
@@ -186,7 +192,12 @@ function printAvailable(profiles) {
   }
   console.log(ui.bold("Available profiles:"));
   for (const profile of profiles) {
-    console.log(`  ${ui.profile(profile.slug)}  ${profile.summary || profile.name}`);
+    const summary = profile.summary || profile.name;
+    console.log(`  ${ui.profile(profile.slug)}  ${ui.dim(shortText(summary, 100))}`);
+    const details = formatProfileDetails(profile);
+    if (details) {
+      console.log(`    ${details}`);
+    }
   }
 }
 
@@ -216,6 +227,9 @@ function printOperations(operations, registryPath, runInstructions = []) {
   if (registryPath) {
     console.log(`${ui.bold("Registry:")} ${ui.path(registryPath)}`);
   }
+  if (runInstructions.length > 0) {
+    console.log("");
+  }
   printRunInstructions(runInstructions);
 }
 
@@ -225,10 +239,11 @@ function printRunInstructions(runInstructions = []) {
   }
 
   console.log(ui.bold("Run installed profiles:"));
-  for (const instruction of runInstructions) {
-    console.log(`  ${ui.profile(instruction.profile)} via ${ui.command(instruction.harness)}: ${ui.command(instruction.command)}`);
-    if (instruction.note) {
-      console.log(`    ${instruction.note}`);
+  for (const group of groupRunInstructions(runInstructions)) {
+    const summary = group.summary ? ` -- ${ui.dim(shortText(group.summary, 120))}` : "";
+    console.log(`  ${ui.profile(group.profile)}${summary}`);
+    for (const instruction of group.instructions) {
+      console.log(`      ${ui.command(runHarnessLabel(instruction.harness))}: ${ui.command(instruction.command)}`);
     }
   }
 }
@@ -242,4 +257,119 @@ function formatAction(action) {
     return ui.warning(action);
   }
   return ui.success(action);
+}
+
+function shouldPromptForProfiles(options) {
+  return Boolean(process.stdin.isTTY && process.stdout.isTTY && !options.json && !options.yes);
+}
+
+function shouldPromptForHarnesses(options) {
+  return Boolean(process.stdin.isTTY && process.stdout.isTTY && !options.json && !options.yes);
+}
+
+async function promptProfileSelection(profiles) {
+  if (profiles.length === 0) {
+    return [];
+  }
+
+  return checkbox({
+    message: "Select agent profiles to install",
+    choices: profiles.map((profile) => {
+      const name = formatPromptChoice(profile);
+      return {
+        value: profile.slug,
+        name,
+        checkedName: name,
+        short: profile.slug,
+        description: formatPromptDescription(profile),
+        checked: true
+      };
+    }),
+    pageSize: Math.min(Math.max(profiles.length, 7), 12),
+    required: true,
+    loop: false
+  });
+}
+
+async function promptHarnessSelection(harnesses) {
+  return checkbox({
+    message: "Select target harnesses",
+    choices: harnesses.map((harness) => {
+      const name = formatHarnessChoice(harness);
+      return {
+        value: harness,
+        name,
+        checkedName: name,
+        short: harness,
+        checked: true
+      };
+    }),
+    pageSize: Math.min(Math.max(harnesses.length, 4), 8),
+    required: true,
+    loop: false
+  });
+}
+
+function formatHarnessChoice(harness) {
+  const command = HARNESS_COMMANDS.get(harness);
+  return command ? `${ui.command(harness)}  ${ui.dim(`detected: ${command}`)}` : ui.command(harness);
+}
+
+function formatPromptChoice(profile) {
+  const summary = profile.summary || profile.name;
+  return `${ui.profile(profile.slug)}  ${ui.dim(shortText(summary, 88))}`;
+}
+
+function formatPromptDescription(profile) {
+  return [
+    profile.summary || profile.name,
+    formatProfileDetails(profile)
+  ].filter(Boolean).join("\n");
+}
+
+function formatProfileDetails(profile) {
+  const details = [];
+  if (profile.kind) {
+    details.push(`kind: ${profile.kind}`);
+  }
+  if (profile.adapters?.length) {
+    details.push(`custom adapters: ${profile.adapters.join(", ")}`);
+  }
+  return details.length > 0 ? ui.dim(details.join(" | ")) : "";
+}
+
+function groupRunInstructions(runInstructions) {
+  const groups = new Map();
+  for (const instruction of runInstructions) {
+    const key = instruction.profile;
+    if (!groups.has(key)) {
+      groups.set(key, {
+        profile: instruction.profile,
+        name: instruction.name,
+        summary: instruction.summary,
+        instructions: []
+      });
+    }
+    groups.get(key).instructions.push(instruction);
+  }
+  return [...groups.values()];
+}
+
+function runHarnessLabel(harness) {
+  if (harness === "claude-code") {
+    return "claude";
+  }
+  return harness;
+}
+
+function shortText(value, maxLength) {
+  const text = stripVTControlCharacters(String(value ?? ""))
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (text.length <= maxLength) {
+    return text;
+  }
+
+  return `${text.slice(0, Math.max(0, maxLength - 3)).trimEnd()}...`;
 }

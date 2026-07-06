@@ -31,7 +31,7 @@ test("top-level help is grouped and colorized", () => {
   });
   assert.equal(result.status, 0, result.stderr);
 
-  assert.match(result.stdout, /Operational profiles for Codex, Claude Code, and OpenCode/);
+  assert.match(result.stdout, /Operational profiles for Codex, Claude Code, OpenCode, and tenex-edge/);
   assert.match(result.stdout, /\x1b\[1mUsage:\x1b\[0m awesome-agents <command> \[options\]/);
   assert.match(result.stdout, /Manage Profiles:/);
   assert.match(result.stdout, /Add Options:/);
@@ -49,7 +49,7 @@ test("NO_COLOR disables ANSI in help", () => {
   assert.equal(result.status, 0, result.stderr);
 
   assert.doesNotMatch(result.stdout, /\x1b\[[0-9;]*m/);
-  assert.match(result.stdout, /Operational profiles for Codex, Claude Code, and OpenCode/);
+  assert.match(result.stdout, /Operational profiles for Codex, Claude Code, OpenCode, and tenex-edge/);
   assert.match(result.stdout, /Usage: awesome-agents <command> \[options\]/);
   assert.match(result.stdout, /Manage Profiles:/);
 });
@@ -119,6 +119,24 @@ test("dry-run install does not write target files or registry", () => {
   assert.equal(existsSync(path.join(home, ".awesome-agents", "installed.json")), false);
 });
 
+test("non-TTY install without a profile selector accepts the default profile set", async () => {
+  const fakeBin = await createFakeCommand("codex");
+  const result = runCli([
+    "add",
+    fixture,
+    "--global",
+    "--home",
+    home
+  ], { PATH: fakeBin, NO_COLOR: "1" });
+  assert.equal(result.status, 0, result.stderr);
+
+  assert.equal(existsSync(path.join(home, ".codex", "ops-agent.config.toml")), true);
+  assert.equal(existsSync(path.join(home, ".codex", "research-agent.config.toml")), true);
+  assert.equal(existsSync(path.join(home, ".codex", "triage-agent.config.toml")), true);
+  assert.match(result.stdout, /installed: ops-agent -> codex/);
+  assert.doesNotMatch(result.stdout, /Select agent profiles to install/);
+});
+
 test("installs a Codex profile and records it in the registry", async () => {
   const result = runCli([
     "add",
@@ -147,10 +165,137 @@ test("installs a Codex profile and records it in the registry", async () => {
   assert.doesNotMatch(content, /^description = /m);
   assert.match(content, /model = "gpt-5\.5"/);
   assert.match(content, /developer_instructions = '''/);
+  assert.match(content, /Immediately Relevant Skills/);
+  assert.match(content, /Immediately relevant skills; you should load these right away from/);
+  assert.match(content, /gh-pages-publisher/);
+
+  const skillTarget = path.join(home, ".agents", "homes", "triage-agent", "skills", "gh-pages-publisher");
+  assert.equal(existsSync(path.join(skillTarget, "SKILL.md")), true);
+  assert.equal(existsSync(path.join(skillTarget, "references", "publishing.md")), true);
 
   const installed = JSON.parse(await fs.readFile(registry, "utf8"));
   assert.equal(installed.installs[0].profile, "triage-agent");
   assert.equal(installed.installs[0].harness, "codex");
+  assert.deepEqual(installed.installs[0].skillTargets, [skillTarget]);
+
+  const parsed = JSON.parse(result.stdout);
+  assert.deepEqual(parsed.operations[0].installedSkills, [
+    {
+      name: "gh-pages-publisher",
+      declaredName: "gh-pages-publisher",
+      source: path.join(fixture, "agents", "triage-agent"),
+      sourceKind: "profile-local",
+      path: skillTarget
+    }
+  ]);
+});
+
+test("installs profile skills from explicit source declarations", async () => {
+  const profileSource = path.join(tempRoot, "profile-source");
+  const skillSource = path.join(tempRoot, "skill-source");
+  await fs.mkdir(path.join(profileSource, "agents", "sample-agent"), { recursive: true });
+  await fs.mkdir(path.join(skillSource, "skills", "remote-helper"), { recursive: true });
+  await fs.writeFile(
+    path.join(profileSource, "agents", "sample-agent", "agent.yaml"),
+    `schema: awesome-agents/v1
+id: sample-agent
+name: Sample Agent
+description: Tests explicit skill source declarations.
+skills:
+  - ${skillSource} remote-helper
+instructions: |
+  Use helper skills when needed.
+`,
+    "utf8"
+  );
+  await fs.writeFile(
+    path.join(skillSource, "skills", "remote-helper", "SKILL.md"),
+    `---
+name: remote-helper
+description: Helps with remote-style skill declarations.
+---
+
+# Remote Helper
+`,
+    "utf8"
+  );
+
+  const result = runCli([
+    "add",
+    profileSource,
+    "--agent",
+    "sample-agent",
+    "--harness",
+    "codex",
+    "--global",
+    "--home",
+    home,
+    "--json"
+  ]);
+  assert.equal(result.status, 0, result.stderr);
+
+  const skillTarget = path.join(home, ".agents", "homes", "sample-agent", "skills", "remote-helper");
+  const target = path.join(home, ".codex", "sample-agent.config.toml");
+  assert.equal(existsSync(path.join(skillTarget, "SKILL.md")), true);
+
+  const content = await fs.readFile(target, "utf8");
+  assert.match(content, new RegExp(escapeRegExp(`- \`remote-helper\`: \`${skillTarget}\``)));
+
+  const parsed = JSON.parse(result.stdout);
+  assert.equal(parsed.operations[0].installedSkills[0].source, skillSource);
+  assert.equal(parsed.operations[0].installedSkills[0].sourceKind, "local");
+});
+
+test("installs bare profile skills from the user skill directory fallback", async () => {
+  const profileSource = path.join(tempRoot, "profile-source");
+  const userSkill = path.join(home, ".agents", "skills", "tenex-edge");
+  await fs.mkdir(path.join(profileSource, "agents", "planning-agent"), { recursive: true });
+  await fs.mkdir(userSkill, { recursive: true });
+  await fs.writeFile(
+    path.join(profileSource, "agents", "planning-agent", "agent.yaml"),
+    `schema: awesome-agents/v1
+id: planning-agent
+name: Planning Agent
+description: Tests user skill fallback.
+skills:
+  - tenex-edge
+instructions: |
+  Plan the work.
+`,
+    "utf8"
+  );
+  await fs.writeFile(
+    path.join(userSkill, "SKILL.md"),
+    `---
+name: tenex-edge
+description: Coordinates over tenex-edge.
+---
+
+# tenex-edge
+`,
+    "utf8"
+  );
+
+  const result = runCli([
+    "add",
+    profileSource,
+    "--agent",
+    "planning-agent",
+    "--harness",
+    "codex",
+    "--global",
+    "--home",
+    home,
+    "--json"
+  ]);
+  assert.equal(result.status, 0, result.stderr);
+
+  const skillTarget = path.join(home, ".agents", "homes", "planning-agent", "skills", "tenex-edge");
+  assert.equal(existsSync(path.join(skillTarget, "SKILL.md")), true);
+
+  const parsed = JSON.parse(result.stdout);
+  assert.equal(parsed.operations[0].installedSkills[0].source, path.join(home, ".agents", "skills"));
+  assert.equal(parsed.operations[0].installedSkills[0].sourceKind, "user-skills");
 });
 
 test("installs an Agent Format YAML profile as a profile, not a skill", async () => {
@@ -270,6 +415,48 @@ test("installs Claude Code and OpenCode profile renderings", async () => {
   assert.match(opencode, /Installed identity: `research-agent`/);
 });
 
+test("installs a tenex-edge agent and preserves its key on reinstall", async () => {
+  const args = [
+    "add",
+    fixture,
+    "--agent",
+    "triage-agent",
+    "--harness",
+    "tenex-edge",
+    "--global",
+    "--home",
+    home,
+    "--json"
+  ];
+  const first = runCli(args);
+  assert.equal(first.status, 0, first.stderr);
+
+  const target = path.join(home, ".tenex-edge", "agents", "triage-agent.json");
+  assert.equal(existsSync(target), true);
+
+  const stored = JSON.parse(await fs.readFile(target, "utf8"));
+  assert.equal(stored.slug, "triage-agent");
+  assert.deepEqual(stored.command, ["claude"]);
+  assert.match(stored.secret_key, /^[0-9a-f]{64}$/);
+  assert.match(stored.public_key, /^[0-9a-f]{64}$/);
+  assert.equal(stored.managed_by, "Generated by awesome-agents");
+  assert.match(stored.byline, /Sorts incoming work/);
+  assert.match(stored.agent.description, /Sorts incoming work/);
+  assert.match(stored.agent.prompt, /Installed for: `tenex-edge`/);
+
+  const parsed = JSON.parse(first.stdout);
+  assert.equal(parsed.operations[0].harness, "tenex-edge");
+  assert.equal(parsed.operations[0].target, target);
+  assert.equal(parsed.operations[0].scope, "global");
+
+  const second = runCli(args);
+  assert.equal(second.status, 0, second.stderr);
+  const reinstalled = JSON.parse(await fs.readFile(target, "utf8"));
+  assert.equal(reinstalled.secret_key, stored.secret_key);
+  assert.equal(reinstalled.public_key, stored.public_key);
+  assert.equal(reinstalled.created_at, stored.created_at);
+});
+
 test("use renders a single profile without installing", () => {
   const result = runCli(["use", `${fixture}@triage-agent`, "--agent", "codex", "--home", home]);
   assert.equal(result.status, 0, result.stderr);
@@ -292,11 +479,31 @@ test("prints detected harness run instructions after install", async () => {
 
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stdout, /Run installed profiles:/);
-  assert.match(result.stdout, /ops-agent via codex: codex --profile ops-agent/);
+  assert.match(result.stdout, /ops-agent -- Keeps operational follow-through moving across tools and teams\./);
+  assert.match(result.stdout, /codex: codex --profile ops-agent/);
+});
+
+test("prints tenex-edge launch instructions when available", async () => {
+  const fakeBin = await createFakeCommand("tenex-edge");
+  const result = runCli([
+    "add",
+    fixture,
+    "--agent",
+    "ops-agent",
+    "--harness",
+    "tenex-edge",
+    "--home",
+    home
+  ], { PATH: fakeBin, NO_COLOR: "1" });
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /Run installed profiles:/);
+  assert.match(result.stdout, /ops-agent -- Keeps operational follow-through moving across tools and teams\./);
+  assert.match(result.stdout, /tenex-edge: tenex-edge launch ops-agent/);
 });
 
 test("defaults to installing every harness detected on PATH", async () => {
-  const fakeBin = await createFakeCommands(["claude", "opencode"]);
+  const fakeBin = await createFakeCommands(["claude", "opencode", "tenex-edge"]);
   const result = runCli([
     "add",
     fixture,
@@ -310,13 +517,14 @@ test("defaults to installing every harness detected on PATH", async () => {
   assert.equal(result.status, 0, result.stderr);
 
   const parsed = JSON.parse(result.stdout);
-  assert.deepEqual(parsed.operations.map((operation) => operation.harness).sort(), ["claude-code", "opencode"]);
+  assert.deepEqual(parsed.operations.map((operation) => operation.harness).sort(), ["claude-code", "opencode", "tenex-edge"]);
   assert.equal(existsSync(path.join(home, ".claude", "agents", "ops-agent.md")), true);
   assert.equal(existsSync(path.join(home, ".config", "opencode", "agents", "ops-agent.md")), true);
+  assert.equal(existsSync(path.join(home, ".tenex-edge", "agents", "ops-agent.json")), true);
   assert.equal(existsSync(path.join(home, ".codex", "ops-agent.config.toml")), false);
 });
 
-test("falls back to Codex when no harness CLI is detected on PATH", async () => {
+test("requires a harness when no harness CLI is detected on PATH", async () => {
   const emptyBin = path.join(tempRoot, "empty-bin");
   await fs.mkdir(emptyBin, { recursive: true });
   const result = runCli([
@@ -329,15 +537,14 @@ test("falls back to Codex when no harness CLI is detected on PATH", async () => 
     home,
     "--json"
   ], { PATH: emptyBin });
-  assert.equal(result.status, 0, result.stderr);
 
-  const parsed = JSON.parse(result.stdout);
-  assert.deepEqual(parsed.operations.map((operation) => operation.harness), ["codex"]);
-  assert.equal(existsSync(path.join(home, ".codex", "ops-agent.config.toml")), true);
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /No supported harness CLI detected on PATH/);
+  assert.equal(existsSync(path.join(home, ".codex", "ops-agent.config.toml")), false);
 });
 
 test("--harness limits install to a single harness even when others are detected on PATH", async () => {
-  const fakeBin = await createFakeCommands(["codex", "claude", "opencode"]);
+  const fakeBin = await createFakeCommands(["codex", "claude", "opencode", "tenex-edge"]);
   const result = runCli([
     "add",
     fixture,
@@ -357,6 +564,7 @@ test("--harness limits install to a single harness even when others are detected
   assert.equal(existsSync(path.join(home, ".config", "opencode", "agents", "ops-agent.md")), true);
   assert.equal(existsSync(path.join(home, ".codex", "ops-agent.config.toml")), false);
   assert.equal(existsSync(path.join(home, ".claude", "agents", "ops-agent.md")), false);
+  assert.equal(existsSync(path.join(home, ".tenex-edge", "agents", "ops-agent.json")), false);
 });
 
 test("remove deletes only generated installs", async () => {
@@ -445,8 +653,13 @@ function runCli(args, envOverrides = {}, options = {}) {
       CODEX_HOME: "",
       CLAUDE_HOME: "",
       OPENCODE_CONFIG_DIR: "",
+      TENEX_EDGE_HOME: "",
       XDG_CONFIG_HOME: "",
       ...envOverrides
     }
   });
+}
+
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

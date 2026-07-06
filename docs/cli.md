@@ -10,11 +10,16 @@
 - `update` / `upgrade` reinstalls from the recorded source.
 - `init` creates a profile source skeleton.
 
-The CLI is noninteractive for the initial scaffold. Options such as `--yes` are
-accepted for parity, but command behavior should be fully scriptable. Installs
-default to project scope where the selected harness supports project-local
-profiles. Codex is the exception: Codex `--profile` loads named config layers
-from `CODEX_HOME`, so Codex profile installs are user-level.
+The CLI stays scriptable by default. In an interactive terminal, `add` opens a
+checkbox selector when no profile selector is provided; every source profile is
+selected by default. When no target harness is provided, `add` detects supported
+harness CLIs on `PATH`; multiple detected harnesses open a checkbox selector
+with every harness selected by default. Non-TTY runs, `--json`, and `--yes` use
+all detected selections without prompting. Installs default to project scope
+where the selected harness supports project-local profiles. Codex and tenex-edge
+are exceptions: Codex `--profile` loads named config layers from `CODEX_HOME`,
+while tenex-edge agents live in its machine keystore under
+`$TENEX_EDGE_HOME/agents/` or `~/.tenex-edge/agents/`.
 
 ## Source Resolution
 
@@ -51,11 +56,26 @@ generated profile is installed:
 npx awesome-agents add owner/repo --agent triage-agent --harness opencode
 ```
 
-For backward compatibility, `--agent codex`, `--agent claude-code`, and
-`--agent opencode` are still accepted as harness selectors.
+For backward compatibility, `--agent codex`, `--agent claude-code`,
+`--agent opencode`, and `--agent tenex-edge` are still accepted as harness
+selectors.
+
+When no harness selector is provided, `add` detects `codex`, `claude`,
+`opencode`, and `tenex-edge` on `PATH`. If none are found, the command fails and
+asks for `--harness`.
+
+When no profile selector is provided in an interactive terminal, `add` prompts
+with a checkbox list of source profiles and their summaries. Pressing Enter
+accepts the default of installing every listed profile. Scripts can use `--yes`,
+`--json`, or a non-TTY stdin/stdout path to keep the same noninteractive default.
 
 The `--skill` flag is accepted only as a command-shape alias for `--profile`.
 Installed artifacts remain operational agent profiles.
+
+Profiles may still declare immediately relevant skills in their source
+definition. Those dependencies are copied into
+`~/.agents/homes/<profile>/skills/<skill>` and appended to the installed prompt
+with complete paths; this does not make the profile itself a skill.
 
 After install, human-readable output should show the CLI command to run each
 installed profile through any matching harness CLI found on `PATH`. Examples:
@@ -63,6 +83,7 @@ installed profile through any matching harness CLI found on `PATH`. Examples:
 ```bash
 codex --profile triage-agent
 claude --agent triage-agent
+tenex-edge launch triage-agent
 ```
 
 ## Install Safety

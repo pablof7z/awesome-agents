@@ -90,6 +90,7 @@ export function normalizeGithubUrl(source) {
 export async function materializeSource(sourceInput, options = {}) {
   const home = options.home ?? os.homedir();
   const source = sourceInput;
+  const requireAgentProfileLayout = options.requireAgentProfileLayout ?? true;
 
   if (!source) {
     throw new Error("Specify a source. Use a local path, owner/repo, or GitHub URL.");
@@ -97,7 +98,9 @@ export async function materializeSource(sourceInput, options = {}) {
 
   if (isLocalSource(source, home)) {
     const sourcePath = path.resolve(expandHome(source, home));
-    await assertAgentProfileLayout(sourcePath);
+    if (requireAgentProfileLayout) {
+      await assertAgentProfileLayout(sourcePath);
+    }
     return {
       kind: "local",
       source: sourcePath,
@@ -106,14 +109,20 @@ export async function materializeSource(sourceInput, options = {}) {
     };
   }
 
-  const gitUrl = normalizeGithubUrl(source);
+  const { sourceWithoutRef, ref } = splitGitRef(source);
+  const gitUrl = normalizeGithubUrl(sourceWithoutRef);
   if (!gitUrl) {
     throw new Error(`Unsupported source "${source}". Use a local path, owner/repo, or GitHub URL.`);
   }
 
   const tmpRoot = options.tmpRoot ?? os.tmpdir();
   const cloneDir = await fs.mkdtemp(path.join(tmpRoot, "awesome-agents-source-"));
-  const clone = spawnSync("git", ["clone", "--depth=1", gitUrl, cloneDir], {
+  const cloneArgs = ["clone", "--depth=1"];
+  if (ref) {
+    cloneArgs.push("--branch", ref);
+  }
+  cloneArgs.push(gitUrl, cloneDir);
+  const clone = spawnSync("git", cloneArgs, {
     encoding: "utf8"
   });
 
@@ -123,7 +132,9 @@ export async function materializeSource(sourceInput, options = {}) {
     throw new Error(`Could not clone ${source}: ${detail}`);
   }
 
-  await assertAgentProfileLayout(cloneDir);
+  if (requireAgentProfileLayout) {
+    await assertAgentProfileLayout(cloneDir);
+  }
 
   return {
     kind: "git",
@@ -133,6 +144,17 @@ export async function materializeSource(sourceInput, options = {}) {
     cleanup: async () => {
       await fs.rm(cloneDir, { recursive: true, force: true });
     }
+  };
+}
+
+function splitGitRef(source) {
+  const hashIndex = source.lastIndexOf("#");
+  if (hashIndex <= 0 || hashIndex === source.length - 1) {
+    return { sourceWithoutRef: source, ref: undefined };
+  }
+  return {
+    sourceWithoutRef: source.slice(0, hashIndex),
+    ref: source.slice(hashIndex + 1)
   };
 }
 

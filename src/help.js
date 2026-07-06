@@ -188,13 +188,13 @@ const banner = [
   color("                       | (_| | (_| |  __/ | | | |_\\__ \\  ", codes.bannerB),
   color("                        \\__,_|\\__, |\\___|_| |_|\\__|___/  ", codes.bannerA),
   color("                              |___/                       ", codes.bannerA),
-  `  ${ui.dim("Operational profiles for Codex, Claude Code, and OpenCode")}`
+  `  ${ui.dim("Operational profiles for Codex, Claude Code, OpenCode, and tenex-edge")}`
 ];
 
 const mainHelp = {
   banner,
   usage: `${PACKAGE_NAME} <command> [options]`,
-  description: "Install reusable operational agent profiles into Codex, Claude Code, and OpenCode.",
+  description: "Install reusable operational agent profiles into Codex, Claude Code, OpenCode, and tenex-edge.",
   sections: [
     {
       title: "Manage Profiles:",
@@ -270,7 +270,7 @@ const mainHelp = {
   examples: [
     { command: `${PACKAGE_NAME} add ${exampleSource} --list`, comment: "inspect source profiles" },
     { command: `${PACKAGE_NAME} add ${exampleSource} --agent ${exampleProfile}` },
-    { command: `${PACKAGE_NAME} add ${exampleSource} --agent ${exampleProfile} --harness opencode` },
+    { command: `${PACKAGE_NAME} add ${exampleSource} --agent ${exampleProfile} --harness tenex-edge` },
     { command: `${PACKAGE_NAME} add ${exampleSource} --all --dry-run`, comment: "preview every write" },
     { command: `${PACKAGE_NAME} use ${exampleSource}@${exampleProfile} --harness claude-code` },
     { command: `${PACKAGE_NAME} list --json`, comment: "machine-readable output" },
@@ -289,8 +289,8 @@ const commandHelp = {
         title: "Install Flow:",
         rows: [
           "1. Read canonical definitions from agents/<slug>/agent.yaml or compatible variants.",
-          "2. Install agent-owned scripts and references into ~/.agents/homes/<slug>/.",
-          "3. Render Codex, Claude Code, or OpenCode files and record them in the registry."
+          "2. Install agent-owned scripts, references, and declared skills into ~/.agents/homes/<slug>/.",
+          "3. Render Codex, Claude Code, OpenCode, or tenex-edge files and record them in the registry."
         ]
       },
       {
@@ -308,6 +308,7 @@ const commandHelp = {
           { term: ui.option("--agent triage-agent"), description: "Preferred shorthand: install one profile slug" },
           { term: ui.option("--profile triage-agent"), description: "Explicit profile selector" },
           { term: ui.option("--skill triage-agent"), description: "Compatibility alias for --profile" },
+          { term: ui.option("(interactive)"), description: "Without a profile selector, choose source profiles from a checkbox list" },
           { term: ui.option("--all"), description: "Install every source profile" },
           { term: ui.option("--list"), description: "Show available profiles and exit" }
         ]
@@ -315,9 +316,9 @@ const commandHelp = {
       {
         title: "Choose Targets:",
         rows: [
-          { term: ui.option("(default)"), description: "Every harness detected on PATH (codex, claude, opencode); falls back to Codex if none are found" },
+          { term: ui.option("(auto-detect)"), description: "Every harness detected on PATH; interactive multi-detect opens a checked-by-default selector" },
           { term: ui.option("--harness opencode"), description: "Render for one harness" },
-          { term: ui.option("--harness codex claude-code"), description: "Render for multiple harnesses" },
+          { term: ui.option("--harness codex tenex-edge"), description: "Render for multiple harnesses" },
           { term: ui.option("--harness *"), description: "Render for every supported harness" },
           { term: ui.option("--global"), description: "Install into the user-level harness directory" },
           { term: ui.option("--project"), description: "Install project-local files where the harness supports it" }
@@ -329,6 +330,7 @@ const commandHelp = {
           { term: ui.command("codex"), description: `${ui.path("~/.codex/<profile>.config.toml")} (project-local Codex profiles are not supported)` },
           { term: ui.command("claude-code"), description: `${ui.path("~/.claude/agents/<profile>.md")} or ${ui.path(".claude/agents/<profile>.md")}` },
           { term: ui.command("opencode"), description: `${ui.path("~/.config/opencode/agents/<profile>.md")} or ${ui.path(".opencode/agents/<profile>.md")}` },
+          { term: ui.command("tenex-edge"), description: `${ui.path("~/.tenex-edge/agents/<profile>.json")} (project-local tenex-edge agents are not supported)` },
           { term: ui.command("registry"), description: `${ui.path("~/.awesome-agents/installed.json")} or ${ui.path(".awesome-agents/installed.json")}` }
         ]
       },
@@ -346,7 +348,7 @@ const commandHelp = {
     examples: [
       { command: `${PACKAGE_NAME} add ${exampleSource} --list` },
       { command: `${PACKAGE_NAME} add ${exampleSource} --agent ${exampleProfile}` },
-      { command: `${PACKAGE_NAME} add ${exampleSource} --agent ${exampleProfile} --harness codex opencode` },
+      { command: `${PACKAGE_NAME} add ${exampleSource} --agent ${exampleProfile} --harness codex tenex-edge` },
       { command: `${PACKAGE_NAME} add ${exampleSource} --all --dry-run` }
     ],
     footer: `Generated files are marked with ${ui.profile("Generated by awesome-agents")}.`
@@ -449,14 +451,14 @@ const commandHelp = {
 function installOptions({ includeHome = false } = {}) {
   return compact([
     { term: ui.option("-g, --global"), description: "Install globally instead of into the current project" },
-    { term: ui.option("-p, --project"), description: "Install into the current project; not supported for Codex profiles" },
+    { term: ui.option("-p, --project"), description: "Install into the current project; not supported for Codex or tenex-edge profiles" },
     { term: ui.option("-a, --agent <profiles...>"), description: "Select agent profile slugs; harness names still work for compatibility" },
     { term: ui.option("--harness <harnesses...>"), description: `Select target harnesses: ${harnesses}, or *` },
     { term: ui.option("-s, --profile <profiles...>"), description: "Explicit profile selector; accepts *" },
     { term: ui.option("--skill <profiles...>"), description: "Compatibility alias for --profile" },
     { term: ui.option("-l, --list"), description: "List available source profiles without installing" },
     { term: ui.option("--all"), description: "Install all profiles to all supported harnesses" },
-    { term: ui.option("-y, --yes"), description: "Accepted for npx skills parity; prompts are not used" },
+    { term: ui.option("-y, --yes"), description: "Accept detected profile and harness selections without opening selectors" },
     { term: ui.option("--dry-run"), description: "Print planned installs without writing files" },
     { term: ui.option("--force"), description: "Allow overwriting files without the generated marker" },
     { term: ui.option("--json"), description: "Output JSON without ANSI color" },

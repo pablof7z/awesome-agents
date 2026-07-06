@@ -24,9 +24,9 @@ The CLI supports:
   language such as `npx awesome-agents add owner/repo --agent triage-agent`.
 - `--profile <slug>` to select profiles explicitly.
 - `--skill <slug>` as a compatibility alias, even though the artifact is a profile.
-- `--harness <codex|claude-code|opencode|*>` to select target harnesses.
-- `--agent <codex|claude-code|opencode|*>` remains accepted as a legacy harness
-  selector when the value is a known harness or harness alias.
+- `--harness <codex|claude-code|opencode|tenex-edge|*>` to select target harnesses.
+- `--agent <codex|claude-code|opencode|tenex-edge|*>` remains accepted as a
+  legacy harness selector when the value is a known harness or harness alias.
 - `--all` to install every profile.
 - `--list` to inspect source profiles before installing.
 
@@ -36,16 +36,17 @@ Accepted implementation decision:
 
 - Install scope defaults to project where the target harness supports project-local profiles.
 - Codex is an exception because `codex --profile <name>` loads
-  `$CODEX_HOME/<name>.config.toml`. Codex profile installs should use that
-  user-level config-layer target.
+  `$CODEX_HOME/<name>.config.toml`. tenex-edge is also global because invitable
+  local agents live under `$TENEX_EDGE_HOME/agents/` or `~/.tenex-edge/agents/`.
 - When no `--harness` or legacy harness-valued `--agent` is provided, the CLI
-  installs to every supported harness whose CLI is detected on `PATH` (checks
-  for `codex`, `claude`, `opencode`). If none are detected, it falls back to
-  Codex only.
-- `--harness <harness>` (or a harness-valued `--agent`) narrows the install to
-  that single harness, overriding detection.
-- The CLI is noninteractive in the initial scaffold.
-- `--yes` is accepted for command-shape parity, but prompts are not currently required.
+  detects supported harness CLIs on `PATH` (`codex`, `claude`, `opencode`, and
+  `tenex-edge`).
+- If one harness is detected, install to it. If multiple harnesses are detected,
+  interactive installs open a checkbox selector with every detected harness
+  selected by default; noninteractive, `--json`, and `--yes` installs use every
+  detected harness.
+- If no harness is detected, fall back to Codex only.
+- `--harness <harness>` (or a harness-valued `--agent`) overrides detection.
 
 ## Scriptability
 

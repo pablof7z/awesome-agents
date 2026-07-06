@@ -6,6 +6,7 @@ import { AGENT_ALIASES, HARNESS_COMMANDS, SUPPORTED_AGENTS } from "./constants.j
 import { contentHash, isGeneratedContent, normalizeAgentList, renderForAgent, resolveTargetPath } from "./renderers.js";
 import { expandHome, loadCatalog, materializeSource, splitSourceSpec } from "./source.js";
 import { readRegistry, registryPath, removeInstall, upsertInstall, writeRegistry } from "./registry.js";
+import { installProfileSkills } from "./skills.js";
 
 export async function listAvailable(sourceInput, options = {}) {
   const { source } = splitSourceSpec(sourceInput);
@@ -22,16 +23,13 @@ export async function installFromSource(sourceSpec, options = {}) {
   const split = splitSourceSpec(sourceSpec);
   const source = split.source;
   const { selectors, harnessInput } = resolveInstallSelection(split, options);
-  const harnesses = normalizeAgentList(harnessInput, {
-    all: options.all,
-    defaultAgent: detectAvailableHarnesses()
-  });
+  const harnesses = await resolveHarnessesForInstall(harnessInput, options);
   const scope = resolveScope(options, harnesses);
 
   const materialized = await materializeSource(source, options);
   try {
     const catalog = await loadCatalog(materialized.path);
-    const profiles = selectProfiles(catalog.profiles, selectors, options.all);
+    const profiles = await resolveProfilesForInstall(catalog.profiles, selectors, options.all, options.chooseProfiles, materialized.source);
     const registryOptions = { ...options, scope };
     const registry = await readRegistry(registryOptions);
     const operations = [];
@@ -39,9 +37,18 @@ export async function installFromSource(sourceSpec, options = {}) {
 
     for (const profile of profiles) {
       const supportTargets = await installProfileSupport(profile, options);
+      const installedSkills = await installProfileSkills(profile, materialized.path, options);
+      const renderProfile = {
+        ...profile,
+        installedSkills
+      };
       for (const harness of harnesses) {
-        const content = renderForAgent(profile, harness, { source: materialized.source });
-        const target = resolveTargetPath(profile, harness, { ...options, scope });
+        const target = resolveTargetPath(renderProfile, harness, { ...options, scope });
+        const existingContent = await readExistingContent(target);
+        const content = renderForAgent(renderProfile, harness, {
+          source: materialized.source,
+          existingContent
+        });
         await writeManagedFile(target, content, options);
 
         const install = {
@@ -56,6 +63,8 @@ export async function installFromSource(sourceSpec, options = {}) {
           installedAt,
           contentSha256: contentHash(content),
           supportTargets,
+          skillTargets: installedSkills.map((skill) => skill.path),
+          installedSkills,
           dryRun: Boolean(options.dryRun)
         };
 
@@ -91,9 +100,7 @@ export async function useFromSource(sourceSpec, options = {}) {
     throw new Error("Specify a profile with source@profile or --profile <profile>.");
   }
 
-  const harness = normalizeAgentList(harnessInput, {
-    defaultAgent: detectAvailableHarnesses()
-  })[0];
+  const harness = resolveHarnessForUse(harnessInput, options);
   const materialized = await materializeSource(split.source, options);
   try {
     const catalog = await loadCatalog(materialized.path);
@@ -311,6 +318,8 @@ function runInstructionForOperation(operation, env) {
     }
     return {
       profile: operation.profile,
+      name: operation.name,
+      summary: operation.summary,
       harness: operation.harness,
       command: `codex --profile ${shellWord(operation.profile)}`,
       note: "Starts Codex with this installed profile."
@@ -323,6 +332,8 @@ function runInstructionForOperation(operation, env) {
     }
     return {
       profile: operation.profile,
+      name: operation.name,
+      summary: operation.summary,
       harness: operation.harness,
       command: `claude --agent ${shellWord(operation.profile)}`,
       note: "Starts Claude Code with this installed agent profile."
@@ -335,17 +346,75 @@ function runInstructionForOperation(operation, env) {
     }
     return {
       profile: operation.profile,
+      name: operation.name,
+      summary: operation.summary,
       harness: operation.harness,
       command: "opencode",
       note: `Start OpenCode, then invoke @${operation.profile} in the session.`
     };
   }
 
+  if (operation.harness === "tenex-edge") {
+    if (!commandExists("tenex-edge", env)) {
+      return undefined;
+    }
+    return {
+      profile: operation.profile,
+      name: operation.name,
+      summary: operation.summary,
+      harness: operation.harness,
+      command: `tenex-edge launch ${shellWord(operation.profile)}`,
+      note: "Starts this profile as a tenex-edge-managed Claude Code agent."
+    };
+  }
+
   return undefined;
+}
+
+async function resolveHarnessesForInstall(harnessInput, options = {}) {
+  if (options.all || harnessInput !== undefined) {
+    return normalizeAgentList(harnessInput, { all: options.all });
+  }
+
+  const detected = detectAvailableHarnesses(options.env ?? process.env);
+  if (detected.length === 0) {
+    throw new Error(noDetectedHarnessMessage());
+  }
+
+  if (detected.length > 1 && typeof options.chooseHarnesses === "function") {
+    const chosen = await options.chooseHarnesses(detected);
+    const harnesses = normalizeAgentList(chosen);
+    if (harnesses.length === 0) {
+      throw new Error("Select at least one harness to install, or pass --harness <harness>.");
+    }
+    return harnesses;
+  }
+
+  return detected;
+}
+
+function resolveHarnessForUse(harnessInput, options = {}) {
+  const explicit = normalizeAgentList(harnessInput);
+  if (explicit.length > 0) {
+    return explicit[0];
+  }
+
+  const detected = detectAvailableHarnesses(options.env ?? process.env);
+  if (detected.length === 0) {
+    throw new Error(noDetectedHarnessMessage());
+  }
+  if (detected.length > 1) {
+    throw new Error(`Multiple harnesses detected (${detected.join(", ")}). Pass --harness <harness> because use renders one target at a time.`);
+  }
+  return detected[0];
 }
 
 function detectAvailableHarnesses(env = process.env) {
   return SUPPORTED_AGENTS.filter((harness) => commandExists(HARNESS_COMMANDS.get(harness), env));
+}
+
+function noDetectedHarnessMessage() {
+  return `No supported harness CLI detected on PATH. Pass --harness <${SUPPORTED_AGENTS.join("|")}> to choose a target.`;
 }
 
 function commandExists(command, env) {
@@ -370,6 +439,15 @@ function shellWord(value) {
     return text;
   }
   return `'${text.replaceAll("'", "'\\''")}'`;
+}
+
+async function resolveProfilesForInstall(profiles, selectors, all, chooseProfiles, source) {
+  if (!all && selectors.length === 0 && typeof chooseProfiles === "function") {
+    const chosen = await chooseProfiles(profiles.map((profile) => profileSummary(profile, source)));
+    return selectProfiles(profiles, normalizeProfileSelectors(chosen), false);
+  }
+
+  return selectProfiles(profiles, selectors, all);
 }
 
 function selectProfiles(profiles, selectors, all = false) {
@@ -406,6 +484,13 @@ async function writeManagedFile(target, content, options = {}) {
   await fs.writeFile(target, content);
 }
 
+async function readExistingContent(target) {
+  if (!existsSync(target)) {
+    return undefined;
+  }
+  return fs.readFile(target, "utf8");
+}
+
 function resolveScope(options = {}, harnesses = []) {
   if (options.project && options.global) {
     throw new Error("Use either --global or --project, not both.");
@@ -413,13 +498,16 @@ function resolveScope(options = {}, harnesses = []) {
   if (options.project && harnesses.includes("codex")) {
     throw new Error("Codex profiles are loaded from $CODEX_HOME/<name>.config.toml and cannot be installed project-locally. Use --global or choose a different harness.");
   }
+  if (options.project && harnesses.includes("tenex-edge")) {
+    throw new Error("tenex-edge agents are machine-local under $TENEX_EDGE_HOME/agents or ~/.tenex-edge/agents and cannot be installed project-locally. Use --global or choose a different harness.");
+  }
   if (options.global) {
     return "global";
   }
   if (options.project) {
     return "project";
   }
-  if (harnesses.includes("codex")) {
+  if (harnesses.includes("codex") || harnesses.includes("tenex-edge")) {
     return "global";
   }
   return "project";

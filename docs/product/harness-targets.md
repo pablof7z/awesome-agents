@@ -9,6 +9,7 @@ Initial harness targets:
 - Codex
 - Claude Code
 - OpenCode
+- tenex-edge
 
 ## Codex
 
@@ -53,8 +54,29 @@ Generated OpenCode agents install to:
 
 OpenCode output is Markdown with frontmatter and a generated marker.
 
+## tenex-edge
+
+Generated tenex-edge agents install to:
+
+- Project: not supported; tenex-edge agents are machine-local
+- Global: `$TENEX_EDGE_HOME/agents/<profile>.json`, or `~/.tenex-edge/agents/<profile>.json`
+
+Run with:
+
+```bash
+tenex-edge launch <profile>
+```
+
+The generated JSON is a tenex-edge local agent keystore entry with:
+
+- a generated Nostr keypair, preserved across reinstalls
+- `command: ["claude"]`
+- an inline Claude `agent` definition passed by tenex-edge as `--agents`
+- a byline derived from the profile summary
+
 ## Adapter Gaps
 
 Some source repositories may provide Codex adapters first. Claude Code and
 OpenCode use generated defaults unless a source repository adds native adapters
-for those harnesses.
+for those harnesses. tenex-edge uses a native adapter when present, otherwise it
+reuses the Claude Code adapter before falling back to the base profile.
