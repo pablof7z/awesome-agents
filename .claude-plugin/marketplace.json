@@ -1,0 +1,26 @@
+{
+  "name": "awesome-agents",
+  "owner": {
+    "name": "Pablo Fernandez",
+    "url": "https://github.com/pablof7z"
+  },
+  "metadata": {
+    "description": "Browse and install reusable agent profiles without leaving your agent harness.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "awesome-agents",
+      "source": "./plugins/awesome-agents",
+      "description": "Discover, install, and manage awesome-agents profiles from inside Claude Code.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Pablo Fernandez",
+        "url": "https://github.com/pablof7z"
+      },
+      "homepage": "https://awesome-agents.com",
+      "license": "MIT",
+      "keywords": ["agents", "agent-profiles", "installer", "directory"]
+    }
+  ]
+}

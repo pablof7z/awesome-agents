@@ -1,0 +1,14 @@
+{
+  "name": "awesome-agents",
+  "displayName": "Awesome Agents",
+  "description": "Browse and install reusable agent profiles from any source, right inside Claude Code.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Pablo Fernandez",
+    "url": "https://github.com/pablof7z"
+  },
+  "homepage": "https://awesome-agents.com",
+  "repository": "https://github.com/pablof7z/awesome-agents",
+  "license": "MIT",
+  "keywords": ["agents", "agent-profiles", "installer", "codex", "opencode"]
+}
