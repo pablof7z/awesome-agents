@@ -1,6 +1,6 @@
 {
   "name": "awesome-agents",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Install reusable agent profiles into Codex, Claude Code, and OpenCode.",
   "type": "module",
   "bin": {

@@ -2,6 +2,12 @@
 
 This file is maintained by `npm run changelog` and `npm run release`. Release entries are generated from git commit history.
 
+## 0.1.5 - 2026-07-06
+
+Changes since `v0.1.4`.
+
+- No commits found for this release.
+
 ## 0.1.4 - 2026-07-06
 
 Changes since `v0.1.3`.
