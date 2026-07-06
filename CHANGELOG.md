@@ -2,6 +2,24 @@
 
 This file is maintained by `npm run changelog` and `npm run release`. Release entries are generated from git commit history.
 
+## 0.1.4 - 2026-07-06
+
+Changes since `v0.1.3`.
+
+### Added
+
+- Add justfile for lint/test/release/publish workflows (7fe04ba)
+- Add agent detail page and visual treatment explorations (7d29557)
+- Add Claude Code plugin for browsing and installing agent profiles (5a11e6f)
+- Add awesome-agents.com marketing/directory site (9ce50cd)
+
+### Changed
+
+- Link leaderboard rows to per-agent pages (6f2c471)
+- Default install to every detected harness on PATH (b5af687)
+- Render Codex profile metadata as comments (59395cc)
+- Install agent-owned support files (3ede3ce)
+
 ## 0.1.3 - 2026-07-05
 
 Initial tracked release.
