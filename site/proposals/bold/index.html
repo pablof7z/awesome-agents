@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>awesome-agents — Bold</title>
+<meta name="description" content="Visual exploration: Mono. The current leaderboard, denser, with signed trust inline.">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip" href="#leaderboard">Skip to directory</a>
+
+<div class="vbar"><span class="vdot"></span>Exploration 06 / 06 &middot; <b>Bold</b> &mdash; the leaderboard with a saturated accent and a bigger wordmark. <a href="../">&larr; all proposals</a></div>
+
+<header class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="../" aria-label="awesome-agents home">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="2" r="1.3" fill="currentColor"/><path d="M10 3.3v1.7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><rect x="3" y="6" width="14" height="12" rx="4" stroke="currentColor" stroke-width="1.7"/><circle cx="7.6" cy="12.3" r="1.4" fill="currentColor"/><circle cx="12.4" cy="12.3" r="1.4" fill="currentColor"/></svg>
+      </span>
+      <span class="brand-sep" aria-hidden="true">/</span>
+      <span class="brand-name">awesome-agents</span>
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#leaderboard">Agents</a>
+      <a href="https://github.com/pablof7z/awesome-agents" rel="noopener">GitHub</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle color theme">
+        <svg class="ico-sun" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="3.2" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8 .8v2M8 13.2v2M.8 8h2M13.2 8h2M2.9 2.9l1.4 1.4M11.7 11.7l1.4 1.4M13.1 2.9l-1.4 1.4M4.3 11.7l-1.4 1.4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        <svg class="ico-moon" viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 9.3A5.6 5.6 0 0 1 6.7 2.5a5.6 5.6 0 1 0 6.8 6.8Z" fill="currentColor"/></svg>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="hero" id="install">
+    <h1 class="wordmark"><span class="w1">awesome</span><span class="w2">agents</span></h1>
+    <p class="roster-line">
+      <span class="roster-prefix" aria-hidden="true">install &rarr;</span>
+      <span class="roster-role" id="roster-role">a reviewer that catches bugs before merge</span>
+    </p>
+    <p class="hero-desc">Installable agent profiles for Claude&nbsp;Code, Codex, and OpenCode. Read the definition, check the work, then run it.</p>
+  </section>
+
+  <section class="try">
+    <div class="try-col">
+      <p class="eyebrow">Try it now</p>
+      <div class="terminal" role="group" aria-label="Install command">
+        <code class="cmd"><span class="tok-prompt">$</span> npx awesome-agents add <span class="tok-arg">owner/repo</span> <span class="tok-flag">--agent</span> <span class="tok-val">triage-agent</span></code>
+        <button class="copy" type="button" data-copy="npx awesome-agents add pablof7z/awesome-agents --agent triage-agent" aria-label="Copy install command">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="1.4" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M3.2 10.5H2.6A1.1 1.1 0 0 1 1.5 9.4V2.6A1.1 1.1 0 0 1 2.6 1.5h6.8a1.1 1.1 0 0 1 1.1 1.1v.6" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="try-col">
+      <p class="eyebrow">Available for these harnesses</p>
+      <div class="harnesses">
+        <span class="harness" title="Claude Code"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3 4 25h4.4L16 10.5 23.6 25H28L16 3Z" fill="currentColor"/><path d="M16 15.5 11.5 24h9L16 15.5Z" fill="currentColor" opacity=".55"/></svg><span class="harness-name">Claude&nbsp;Code</span></span>
+        <span class="harness" title="Codex"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="12.5" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M11 12.5 15 16l-4 3.5M16.5 20h5" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="harness-name">Codex</span></span>
+        <span class="harness" title="OpenCode"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="3.5" y="6.5" width="25" height="19" rx="3" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M9 13l3.5 3L9 19M15.5 20h7" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="harness-name">OpenCode</span></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="board" id="leaderboard" aria-labelledby="board-heading">
+    <p class="eyebrow" id="board-heading">Agents Leaderboard</p>
+    <div class="search">
+      <svg class="search-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M7 12A5 5 0 1 0 7 2a5 5 0 0 0 0 10Zm4.5-.5 3 3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      <input id="search" type="search" placeholder="Search by role — reviewer, auditor, critic…" autocomplete="off" aria-label="Search agents">
+      <kbd class="search-kbd" aria-hidden="true">/</kbd>
+    </div>
+    <div class="tabs" role="tablist" aria-label="Sort order">
+      <button class="tab" role="tab" aria-selected="true" data-sort="installs">All Time</button>
+      <button class="tab" role="tab" aria-selected="false" data-sort="trending">Trending (24h)</button>
+      <button class="tab" role="tab" aria-selected="false" data-sort="examples">Most Samples</button>
+      <button class="tab" role="tab" aria-selected="false" data-sort="name">A&ndash;Z</button>
+    </div>
+    <div class="table" role="table" aria-label="Agent profiles">
+      <div class="thead" role="row">
+        <span class="th col-rank" role="columnheader">#</span>
+        <span class="th col-main" role="columnheader">Agent</span>
+        <span class="th col-activity" role="columnheader">8W Activity</span>
+        <span class="th col-installs" role="columnheader">Installs</span>
+      </div>
+      <div class="tbody" id="rows"></div>
+      <p id="empty" class="empty" hidden>No agents match <span id="empty-q"></span>.</p>
+    </div>
+    <p class="board-note">The <b>sample</b> count on each profile is published work &mdash; real output, user-approved. A signal, not a promise. Rows marked <b>source only</b> have an open definition you can read before installing. Click any row to copy its install command.</p>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-inner">
+    <span class="brand small"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="2" r="1.3" fill="currentColor"/><path d="M10 3.3v1.7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><rect x="3" y="6" width="14" height="12" rx="4" stroke="currentColor" stroke-width="1.7"/><circle cx="7.6" cy="12.3" r="1.4" fill="currentColor"/><circle cx="12.4" cy="12.3" r="1.4" fill="currentColor"/></svg></span><span class="brand-name">awesome-agents</span></span>
+    <nav aria-label="Footer"><a href="https://github.com/pablof7z/awesome-agents" rel="noopener">GitHub</a><a href="#leaderboard">Directory</a></nav>
+    <span class="foot-note">Command shape mirrors <code>npx&nbsp;skills</code>. The unit is an agent, not a skill.</span>
+  </div>
+</footer>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script src="../data.js"></script>
+<script>window.AA_TRUST = { on: true, version: true, publisher: true, vouches: true };</script>
+<script src="app.js"></script>
+</body>
+</html>
