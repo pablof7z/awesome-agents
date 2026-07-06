@@ -81,14 +81,18 @@
     '<path d="M8 1 9.9 2.6l2.5-.2.6 2.4 2 1.5-1 2.3 1 2.3-2 1.5-.6 2.4-2.5-.2L8 15l-1.9-1.6-2.5.2-.6-2.4-2-1.5 1-2.3-1-2.3 2-1.5.6-2.4 2.5.2L8 1Z" fill="currentColor" opacity=".35"/>' +
     '<path d="m5.6 8.1 1.7 1.7 3.1-3.4" fill="none" stroke="var(--bg)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
+  var COPY_SVG =
+    '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="1.4" fill="none" stroke="currentColor" stroke-width="1.3"/>' +
+    '<path d="M3.2 10.5H2.6A1.1 1.1 0 0 1 1.5 9.4V2.6A1.1 1.1 0 0 1 2.6 1.5h6.8a1.1 1.1 0 0 1 1.1 1.1v.6" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>';
+
   function rowHTML(a, i) {
     var proof = a.examples > 0
       ? '<span class="proof" title="Shipped: ' + esc(a.excerpt) + '">' + VERIFIED + "<b>" + a.examples + "</b> samples</span>"
       : '<span class="proof proof-source">source only</span>';
     var empty = a.examples > 0 ? "" :
       '<p class="agent-empty">No public samples yet. The definition is open &mdash; read it before you install. ' +
-        '<a href="https://github.com/' + esc(a.source) + '" target="_blank" rel="noopener">View definition &rarr;</a></p>';
-    return '<div class="trow" role="row" data-copy="' + esc(cmdFor(a)) + '" title="Click to copy install command">' +
+        '<a href="/agents/' + esc(a.slug) + '/definition">View definition &rarr;</a></p>';
+    return '<div class="trow" role="row" data-href="/agents/' + esc(a.slug) + '" title="Open ' + esc(a.name) + '">' +
       '<span class="rank" role="cell">' + (i + 1) + "</span>" +
       '<div class="cell-main" role="cell">' +
         '<span class="main-line"><span class="agent-slug">' + esc(a.slug) + "</span>" +
@@ -101,7 +105,10 @@
       "</div>" +
       '<div class="cell-activity" role="cell">' + sparkline(a.activity) + "</div>" +
       '<div class="cell-installs" role="cell">' + VERIFIED +
-        '<span class="installs-n">' + fmt(a.installs) + "</span></div>" +
+        '<span class="installs-n">' + fmt(a.installs) + "</span>" +
+        '<button class="row-copy" type="button" data-copy="' + esc(cmdFor(a)) +
+          '" aria-label="Copy install command for ' + esc(a.slug) + '">' + COPY_SVG + "</button>" +
+      "</div>" +
     "</div>";
   }
 
@@ -137,12 +144,16 @@
   document.addEventListener("click", function (e) {
     if (e.target.closest("a")) return;
     var btn = e.target.closest("[data-copy]");
-    if (!btn) return;
-    copyText(btn.getAttribute("data-copy")).then(function () {
-      btn.classList.add("copied");
-      showToast("Copied install command");
-      setTimeout(function () { btn.classList.remove("copied"); }, 1400);
-    });
+    if (btn) {
+      copyText(btn.getAttribute("data-copy")).then(function () {
+        btn.classList.add("copied");
+        showToast("Copied install command");
+        setTimeout(function () { btn.classList.remove("copied"); }, 1400);
+      });
+      return;
+    }
+    var row = e.target.closest(".trow[data-href]");
+    if (row) location.assign(row.getAttribute("data-href"));
   });
 
   // ---- events ----

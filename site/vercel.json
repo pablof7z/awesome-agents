@@ -5,6 +5,10 @@
   "installCommand": null,
   "outputDirectory": ".",
   "cleanUrls": true,
+  "rewrites": [
+    { "source": "/agents/:slug", "destination": "/agent" },
+    { "source": "/agents/:slug/:tab", "destination": "/agent" }
+  ],
   "headers": [
     {
       "source": "/(styles.css|app.js|data.js|favicon.svg)",
