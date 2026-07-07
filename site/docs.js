@@ -1,8 +1,9 @@
 (function () {
   "use strict";
   var toast = document.getElementById("toast");
+  var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  // ---- theme (same behavior as the rest of the site) ----
+  // ---- theme (shared behavior) ----
   var root = document.documentElement;
   var stored = null;
   try { stored = localStorage.getItem("aa-theme"); } catch (e) {}
@@ -63,8 +64,7 @@
     btn.setAttribute("aria-label", "Copy code");
     btn.innerHTML = COPY_SVG;
     btn.addEventListener("click", function () {
-      // strip the leading "$ " prompt from each line for a paste-ready command
-      var text = code.innerText.replace(/^\$\s?/gm, "");
+      var text = code.innerText.replace(/^\$\s?/gm, ""); // strip prompt → paste-ready
       copyText(text).then(function () {
         btn.classList.add("copied");
         showToast("Copied to clipboard");
@@ -74,36 +74,24 @@
     block.appendChild(btn);
   });
 
-  // ---- scrollspy: highlight the active section in the side nav ----
-  var links = Array.prototype.slice.call(document.querySelectorAll(".docs-side a"));
-  var sections = links
-    .map(function (a) { return document.getElementById(a.getAttribute("href").slice(1)); })
-    .filter(Boolean);
-
-  function setActive(id) {
-    links.forEach(function (a) {
-      a.classList.toggle("active", a.getAttribute("href") === "#" + id);
-    });
-  }
-
-  if ("IntersectionObserver" in window && sections.length) {
+  // ---- "On this page" scrollspy ----
+  var tocLinks = Array.prototype.slice.call(document.querySelectorAll(".doc-toc a"));
+  if (tocLinks.length && !reduce && "IntersectionObserver" in window) {
+    var byId = {};
+    tocLinks.forEach(function (a) { byId[a.getAttribute("href").slice(1)] = a; });
+    var headings = Object.keys(byId)
+      .map(function (id) { return document.getElementById(id); })
+      .filter(Boolean);
     var visible = {};
+    function setActive(id) { tocLinks.forEach(function (a) { a.classList.toggle("active", a.getAttribute("href") === "#" + id); }); }
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (en) { visible[en.target.id] = en.isIntersecting ? en.intersectionRatio : 0; });
       var best = null, bestRatio = 0;
-      sections.forEach(function (s) {
-        var r = visible[s.id] || 0;
-        if (r > bestRatio) { bestRatio = r; best = s.id; }
-      });
-      // only move the highlight when a section is genuinely in the band;
-      // at the very top nothing intersects, so keep the first item active
+      headings.forEach(function (h) { var r = visible[h.id] || 0; if (r > bestRatio) { bestRatio = r; best = h.id; } });
       if (best && bestRatio > 0) setActive(best);
-    }, { rootMargin: "-40% 0px -55% 0px", threshold: [0, 0.25, 0.5, 1] });
-    sections.forEach(function (s) { io.observe(s); });
+    }, { rootMargin: "-72px 0px -60% 0px", threshold: [0, 0.5, 1] });
+    headings.forEach(function (h) { io.observe(h); });
+    if (headings.length) setActive(headings[0].id);
+    tocLinks.forEach(function (a) { a.addEventListener("click", function () { setActive(a.getAttribute("href").slice(1)); }); });
   }
-  if (sections.length) setActive(sections[0].id);
-
-  links.forEach(function (a) {
-    a.addEventListener("click", function () { setActive(a.getAttribute("href").slice(1)); });
-  });
 })();
