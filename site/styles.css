@@ -30,9 +30,9 @@
   --border-strong: #2a3033;
   --border-accent: color-mix(in srgb, var(--accent) 40%, var(--border-strong));
 
-  --accent: #c4f14a;              /* lime signal */
+  --accent: #ff5436;              /* coral signal (bold proposal) */
   --accent-soft: color-mix(in srgb, var(--accent) 16%, transparent);
-  --accent-text: #cbf35e;         /* accent used as readable text on the dark bg */
+  --accent-text: #ff6f57;         /* accent used as readable text on the dark bg */
   --accent-fg: #0a0d04;           /* ink on top of an accent fill */
   --glow: color-mix(in srgb, var(--accent) 22%, transparent);
 
@@ -55,9 +55,9 @@
   --border-strong: #d8dad2;
   --border-accent: color-mix(in srgb, var(--accent-text) 55%, var(--border-strong));
 
-  --accent: #7bb016;              /* darker lime so fills stay legible on white */
+  --accent: #e84018;              /* deeper coral so fills stay legible on white */
   --accent-soft: color-mix(in srgb, var(--accent) 14%, transparent);
-  --accent-text: #4f7a10;         /* readable accent text on light */
+  --accent-text: #c9380f;         /* readable accent text on light */
   --accent-fg: #0a0d04;
   --glow: color-mix(in srgb, var(--accent) 14%, transparent);
 
@@ -72,8 +72,8 @@
     --panel-hover: #f0f2ec; --fg: #14171a; --muted: #565d5a; --dim: #7d8481;
     --faint: #aab0ac; --border: #e7e8e2; --border-strong: #d8dad2;
     --border-accent: color-mix(in srgb, var(--accent-text) 55%, var(--border-strong));
-    --accent: #7bb016; --accent-soft: color-mix(in srgb, var(--accent) 14%, transparent);
-    --accent-text: #4f7a10; --accent-fg: #0a0d04; --glow: color-mix(in srgb, var(--accent) 14%, transparent);
+    --accent: #e84018; --accent-soft: color-mix(in srgb, var(--accent) 14%, transparent);
+    --accent-text: #c9380f; --accent-fg: #0a0d04; --glow: color-mix(in srgb, var(--accent) 14%, transparent);
     --grid-dot: rgba(0,0,0,.04);
     --shadow: 0 1px 0 rgba(255,255,255,.6), 0 20px 50px -30px rgba(20,30,10,.35);
     color-scheme: light;
@@ -503,7 +503,7 @@ a { color: inherit; text-decoration: none; }
 .spark .line { fill: none; stroke: var(--spark, var(--dim)); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 .spark .fill { fill: var(--accent); opacity: .07; stroke: none; }
 .trow:hover .spark .line { stroke: var(--accent-text); }
-.spark .line { stroke: var(--accent-text); opacity: .55; }
+.spark .line { stroke: var(--accent-text); opacity: .68; }
 .spark .dot { fill: var(--accent); }
 
 /* animated draw + row stagger (only when tbody has .animate) */
