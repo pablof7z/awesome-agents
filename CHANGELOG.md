@@ -2,6 +2,18 @@
 
 This file is maintained by `npm run changelog` and `npm run release`. Release entries are generated from git commit history.
 
+## 0.1.7 - 2026-07-07
+
+Changes since `v0.1.6`.
+
+### Added
+
+- Add generated docs site (8eb21ba)
+
+### Changed
+
+- Update tenex-edge launch commands (cc304e2)
+
 ## 0.1.6 - 2026-07-06
 
 Changes since `v0.1.5`.
