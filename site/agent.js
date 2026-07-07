@@ -40,8 +40,8 @@
 
   var VERIFIED =
     '<svg class="verified" viewBox="0 0 16 16" aria-hidden="true">' +
-    '<path d="M8 1 9.9 2.6l2.5-.2.6 2.4 2 1.5-1 2.3 1 2.3-2 1.5-.6 2.4-2.5-.2L8 15l-1.9-1.6-2.5.2-.6-2.4-2-1.5 1-2.3-1-2.3 2-1.5.6-2.4 2.5.2L8 1Z" fill="currentColor" opacity=".35"/>' +
-    '<path d="m5.6 8.1 1.7 1.7 3.1-3.4" fill="none" stroke="var(--bg)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    '<path d="M8 1 9.9 2.6l2.5-.2.6 2.4 2 1.5-1 2.3 1 2.3-2 1.5-.6 2.4-2.5-.2L8 15l-1.9-1.6-2.5.2-.6-2.4-2-1.5 1-2.3-1-2.3 2-1.5.6-2.4 2.5.2L8 1Z" fill="currentColor" opacity=".22"/>' +
+    '<path d="m5.6 8.1 1.7 1.7 3.1-3.4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
   var HARNESSES =
     '<span class="harness" title="Claude Code">' +
@@ -214,7 +214,11 @@
     }
     if (tab === "definition") {
       return '<div class="tab-panel">' +
-        '<div class="def-block"><pre class="def-pre">' + renderDef(c.def || "") + "</pre></div>" +
+        '<div class="def-block">' +
+          '<div class="term-bar"><span class="term-dot"></span><span class="term-dot"></span><span class="term-dot"></span>' +
+            '<span class="term-title">' + esc(a.slug) + '.agent.yaml</span></div>' +
+          '<pre class="def-pre">' + renderDef(c.def || "") + "</pre>" +
+        "</div>" +
       "</div>";
     }
     if (tab === "reviews") {
@@ -245,9 +249,9 @@
       "</section>" +
 
       '<section class="card-install">' +
-        '<div class="terminal" role="group" aria-label="Install command">' +
-          '<code class="cmd"><span class="tok-prompt">$</span> npx awesome-agents add ' +
-            '<span class="tok-arg">' + esc(a.source) + '</span> <span class="tok-flag">--agent</span> ' +
+        '<div class="install" role="group" aria-label="Install command">' +
+          '<code class="cmd"><span class="tok-prompt">$</span>npx awesome-agents add ' +
+            '<span class="tok-dim">' + esc(a.source) + '</span> <span class="tok-flag">--agent</span> ' +
             '<span class="tok-val">' + esc(a.slug) + "</span></code>" +
           '<button class="copy" type="button" data-copy="' + esc(cmd) + '" aria-label="Copy install command">' + COPY_SVG + "</button>" +
         "</div>" +
@@ -302,4 +306,12 @@
   var tab = validTabs[route.tab] ? route.tab : "";
   var agent = agents.filter(function (a) { return a.slug === route.slug; })[0];
   if (agent) render(agent, tab); else notFound(route.slug || "(none)");
+
+  // ---- nav shadow on scroll ----
+  var nav = document.getElementById("nav");
+  if (nav) {
+    var onScroll = function () { nav.classList.toggle("scrolled", window.scrollY > 8); };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+  }
 })();

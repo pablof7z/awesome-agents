@@ -4,20 +4,20 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark light">
-<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
-<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#08090a" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#fbfbfa" media="(prefers-color-scheme: light)">
 <title>Agent — awesome-agents</title>
 <meta name="description" content="An agent profile card — read the definition, check the work, then install.">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500&family=Fira+Mono:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
 <a class="skip" href="#card-main">Skip to agent</a>
 
-<header class="nav">
+<header class="nav" id="nav">
   <div class="nav-inner">
     <a class="brand" href="/" aria-label="awesome-agents home">
       <span class="brand-mark" aria-hidden="true">
@@ -29,14 +29,14 @@
           <circle cx="12.4" cy="12.3" r="1.4" fill="currentColor"/>
         </svg>
       </span>
-      <span class="brand-sep" aria-hidden="true">/</span>
-      <span class="brand-name">awesome-agents</span>
+      <span class="brand-name"><b>awesome</b><span class="slash">/</span>agents</span>
     </a>
     <nav class="nav-links" aria-label="Primary">
-      <a href="/#leaderboard">Agents</a>
-      <a href="https://github.com/pablof7z/awesome-agents#readme" rel="noopener">Docs</a>
-      <a href="https://www.npmjs.com/package/awesome-agents" rel="noopener">npm</a>
-      <a href="https://github.com/pablof7z/awesome-agents" rel="noopener">GitHub</a>
+      <a href="/#leaderboard">Directory</a>
+      <a class="hide-sm" href="https://github.com/pablof7z/awesome-agents#readme" rel="noopener">Docs</a>
+      <a class="hide-sm" href="https://www.npmjs.com/package/awesome-agents" rel="noopener">npm</a>
+      <span class="nav-sep" aria-hidden="true"></span>
+      <a class="nav-cta" href="https://github.com/pablof7z/awesome-agents" rel="noopener">GitHub</a>
       <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle color theme">
         <svg class="ico-sun" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="3.2" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8 .8v2M8 13.2v2M.8 8h2M13.2 8h2M2.9 2.9l1.4 1.4M11.7 11.7l1.4 1.4M13.1 2.9l-1.4 1.4M4.3 11.7l-1.4 1.4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
         <svg class="ico-moon" viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 9.3A5.6 5.6 0 0 1 6.7 2.5a5.6 5.6 0 1 0 6.8 6.8Z" fill="currentColor"/></svg>
@@ -61,7 +61,7 @@
           <circle cx="12.4" cy="12.3" r="1.4" fill="currentColor"/>
         </svg>
       </span>
-      <span class="brand-name">awesome-agents</span>
+      <span class="brand-name"><b>awesome</b><span class="slash">/</span>agents</span>
     </span>
     <nav aria-label="Footer">
       <a href="https://github.com/pablof7z/awesome-agents" rel="noopener">GitHub</a>
