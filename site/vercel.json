@@ -7,11 +7,15 @@
   "cleanUrls": true,
   "rewrites": [
     { "source": "/agents/:slug", "destination": "/agent" },
-    { "source": "/agents/:slug/:tab", "destination": "/agent" }
+    { "source": "/agents/:slug/:tab", "destination": "/agent" },
+    { "source": "/pablof7z", "destination": "/profile" },
+    { "source": "/pablof7z/:section", "destination": "/profile" },
+    { "source": "/pablof7z/:repo/:agent", "destination": "/profile" },
+    { "source": "/pablof7z/:repo/:agent/:section", "destination": "/profile" }
   ],
   "headers": [
     {
-      "source": "/(styles.css|app.js|agent.js|docs.js|data.js|favicon.svg)",
+      "source": "/(styles.css|app.js|agent.js|profile.js|docs.js|data.js|social-data.js|favicon.svg)",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=3600, must-revalidate" }
       ]

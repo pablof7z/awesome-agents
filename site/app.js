@@ -40,6 +40,9 @@
   function cmdFor(a) {
     return "npx awesome-agents add " + a.source + " --agent " + a.slug;
   }
+  function hrefFor(a) {
+    return a.profilePath || ("/agents/" + encodeURIComponent(a.slug));
+  }
   function trendScore(a) {
     var v = a.activity, early = (v[0] + v[1] + v[2]) || 1;
     var late = v[v.length - 1] + v[v.length - 2] + v[v.length - 3];
@@ -91,8 +94,8 @@
       : '<span class="proof proof-source">source only</span>';
     var empty = a.examples > 0 ? "" :
       '<p class="agent-empty">No public samples yet. The definition is open &mdash; read it before you install. ' +
-        '<a href="/agents/' + esc(a.slug) + '/definition">View definition &rarr;</a></p>';
-    return '<div class="trow" role="row" data-href="/agents/' + esc(a.slug) + '" title="Open ' + esc(a.name) + '">' +
+        '<a href="' + esc(hrefFor(a)) + '">View definition &rarr;</a></p>';
+    return '<div class="trow" role="row" data-href="' + esc(hrefFor(a)) + '" title="Open ' + esc(a.name) + '">' +
       '<span class="rank" role="cell">' + (i + 1) + "</span>" +
       '<div class="cell-main" role="cell">' +
         '<span class="main-line"><span class="agent-slug">' + esc(a.slug) + "</span>" +
