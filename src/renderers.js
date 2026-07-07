@@ -174,6 +174,28 @@ function renderOpenCode(profile, context) {
 function renderTenexEdge(profile, context) {
   const existing = tenexEdgeKeyMaterial(context.existingContent);
   const keyMaterial = existing ?? generateNostrKeypair();
+  const commands = tenexEdgeCommands(profile, context);
+  const agent = tenexEdgeInlineAgent(profile);
+
+  const stored = {
+    slug: profile.slug,
+    secret_key: keyMaterial.secret_key,
+    public_key: keyMaterial.public_key,
+    created_at: keyMaterial.created_at ?? Math.floor(Date.now() / 1000),
+    commands,
+    byline: profile.summary || profile.name,
+    managed_by: GENERATED_MARKER,
+    source: context.source
+  };
+
+  if (hasInlineClaudeCommand(commands)) {
+    stored.agent = agent;
+  }
+
+  return `${JSON.stringify(stored, null, 2)}\n`;
+}
+
+function tenexEdgeInlineAgent(profile) {
   const agent = {
     description: profile.summary || profile.name,
     prompt: buildInstructionBody(profile, profile.adapters["tenex-edge"] ?? profile.adapters["claude-code"], "tenex-edge")
@@ -188,19 +210,43 @@ function renderTenexEdge(profile, context) {
     agent.effort = effort;
   }
 
-  const stored = {
-    slug: profile.slug,
-    secret_key: keyMaterial.secret_key,
-    public_key: keyMaterial.public_key,
-    created_at: keyMaterial.created_at ?? Math.floor(Date.now() / 1000),
-    command: ["claude"],
-    agent,
-    byline: profile.summary || profile.name,
-    managed_by: GENERATED_MARKER,
-    source: context.source
-  };
+  return agent;
+}
 
-  return `${JSON.stringify(stored, null, 2)}\n`;
+function tenexEdgeCommands(profile, context) {
+  const commands = [];
+  for (const harness of arrayify(context.selectedHarnesses)) {
+    if (harness === "codex") {
+      commands.push({
+        name: "codex",
+        argv: ["codex", "--profile", profile.slug]
+      });
+    } else if (harness === "claude-code") {
+      commands.push({
+        name: "claude",
+        argv: ["claude", "--agent", profile.slug]
+      });
+    }
+  }
+
+  // Keep tenex-edge-only installs self-contained. tenex-edge expands this with
+  // the inline `agent` definition as `claude --agents ... --agent <slug>`.
+  if (!commands.some((command) => command.name === "claude")) {
+    commands.push({
+      name: "claude",
+      argv: ["claude"]
+    });
+  }
+
+  return uniqueBy(commands, (command) => command.name);
+}
+
+function hasInlineClaudeCommand(commands) {
+  return commands.some((command) => (
+    command.name === "claude" &&
+    command.argv.length === 1 &&
+    command.argv[0] === "claude"
+  ));
 }
 
 function buildInstructionBody(profile, adapter, harness) {
@@ -356,6 +402,20 @@ function arrayify(value) {
     return [];
   }
   return [value];
+}
+
+function uniqueBy(values, keyForValue) {
+  const seen = new Set();
+  const out = [];
+  for (const value of values) {
+    const key = keyForValue(value);
+    if (seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    out.push(value);
+  }
+  return out;
 }
 
 function flattenValues(values) {
