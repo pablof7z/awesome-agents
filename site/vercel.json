@@ -11,7 +11,7 @@
   ],
   "headers": [
     {
-      "source": "/(styles.css|app.js|data.js|favicon.svg)",
+      "source": "/(styles.css|app.js|data.js|docs.js|favicon.svg)",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=3600, must-revalidate" }
       ]
