@@ -6,8 +6,11 @@
 <meta name="color-scheme" content="dark light">
 <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-<title>Agent — awesome-agents</title>
-<meta name="description" content="An agent profile card — read the definition, check the work, then install.">
+<title>Quickstart - awesome-agents docs</title>
+<meta name="description" content="The shortest path from a source repository to a working agent profile in your harness.">
+<meta property="og:title" content="Quickstart - awesome-agents docs">
+<meta property="og:description" content="The shortest path from a source repository to a working agent profile in your harness.">
+<meta property="og:type" content="website">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,7 +18,7 @@
 <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-<a class="skip" href="#card-main">Skip to agent</a>
+<a class="skip" href="#docs-main">Skip to docs</a>
 
 <header class="nav">
   <div class="nav-inner">
@@ -34,7 +37,7 @@
     </a>
     <nav class="nav-links" aria-label="Primary">
       <a href="/#leaderboard">Agents</a>
-      <a href="/docs">Docs</a>
+      <a href="/docs" aria-current="page">Docs</a>
       <a href="https://www.npmjs.com/package/awesome-agents" rel="noopener">npm</a>
       <a href="https://github.com/pablof7z/awesome-agents" rel="noopener">GitHub</a>
       <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle color theme">
@@ -45,8 +48,54 @@
   </div>
 </header>
 
-<main class="wrap" id="card-main">
-  <div id="card"></div>
+<main class="wrap docs-page" id="docs-main">
+  <section class="docs-hero docs-hero-compact">
+    <p class="eyebrow">Quickstart</p>
+    <h1 class="docs-title">Install, preview, and run a profile.</h1>
+    <p class="docs-desc">The shortest path from a source repository to a working agent profile in your harness.</p>
+    
+  </section>
+
+  <div class="docs-shell">
+    <aside class="docs-toc" aria-label="Docs table of contents">
+      <nav>
+        <a href="/docs">Overview</a>
+        <a href="/docs/quickstart" aria-current="page">Quickstart</a>
+        <a href="/docs/concepts">Core concepts</a>
+        <a href="/docs/cli">CLI guide</a>
+        <a href="/docs/installing">Installing</a>
+        <a href="/docs/authoring">Authoring</a>
+        <a href="/docs/harnesses">Harnesses</a>
+        <a href="/docs/safety">Safety</a>
+        <a href="/docs/examples">Examples</a>
+        <a href="/docs/reference">Reference</a>
+        <a href="/docs/troubleshooting">Troubleshooting</a>
+      </nav>
+    </aside>
+    <article class="docs-content">
+      
+      <section class="docs-section docs-section-first">
+        <p class="eyebrow">Four steps</p>
+        <h2>Start with a dry run.</h2>
+        <div class="docs-steps">
+          <div><span class="docs-step-n">1</span><h3>Inspect source profiles</h3><pre class="docs-code"><code>npx awesome-agents add owner/repo --list</code></pre></div>
+          <div><span class="docs-step-n">2</span><h3>Preview writes</h3><pre class="docs-code"><code>npx awesome-agents add owner/repo --agent triage-agent --dry-run</code></pre></div>
+          <div><span class="docs-step-n">3</span><h3>Install the profile</h3><pre class="docs-code"><code>npx awesome-agents add owner/repo --agent triage-agent</code></pre></div>
+          <div><span class="docs-step-n">4</span><h3>Run it</h3><pre class="docs-code"><code>codex --profile triage-agent
+claude --agent triage-agent
+opencode</code></pre></div>
+        </div>
+      </section>
+      <section class="docs-section">
+        <p class="eyebrow">Local development</p>
+        <h2>Use a checkout while authoring profiles.</h2>
+        <pre class="docs-code"><code>npm install
+npm test
+node ./bin/awesome-agents.js add ./test/fixtures/profile-source --agent triage-agent --dry-run</code></pre>
+      </section>
+    
+    </article>
+  </div>
 </main>
 
 <footer class="foot">
@@ -64,6 +113,7 @@
       <span class="brand-name">awesome-agents</span>
     </span>
     <nav aria-label="Footer">
+      <a href="/docs">Docs</a>
       <a href="https://github.com/pablof7z/awesome-agents" rel="noopener">GitHub</a>
       <a href="https://www.npmjs.com/package/awesome-agents" rel="noopener">npm</a>
       <a href="/#leaderboard">Directory</a>
@@ -73,8 +123,6 @@
 </footer>
 
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
-
-<script src="/data.js"></script>
-<script src="/agent.js"></script>
+<script src="/docs.js"></script>
 </body>
 </html>

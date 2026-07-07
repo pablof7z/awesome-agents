@@ -6,8 +6,11 @@
 <meta name="color-scheme" content="dark light">
 <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-<title>Agent — awesome-agents</title>
-<meta name="description" content="An agent profile card — read the definition, check the work, then install.">
+<title>CLI Guide - awesome-agents docs</title>
+<meta name="description" content="Use add, use, list, remove, update, and init to manage generated profile installs.">
+<meta property="og:title" content="CLI Guide - awesome-agents docs">
+<meta property="og:description" content="Use add, use, list, remove, update, and init to manage generated profile installs.">
+<meta property="og:type" content="website">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,7 +18,7 @@
 <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-<a class="skip" href="#card-main">Skip to agent</a>
+<a class="skip" href="#docs-main">Skip to docs</a>
 
 <header class="nav">
   <div class="nav-inner">
@@ -34,7 +37,7 @@
     </a>
     <nav class="nav-links" aria-label="Primary">
       <a href="/#leaderboard">Agents</a>
-      <a href="/docs">Docs</a>
+      <a href="/docs" aria-current="page">Docs</a>
       <a href="https://www.npmjs.com/package/awesome-agents" rel="noopener">npm</a>
       <a href="https://github.com/pablof7z/awesome-agents" rel="noopener">GitHub</a>
       <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle color theme">
@@ -45,8 +48,57 @@
   </div>
 </header>
 
-<main class="wrap" id="card-main">
-  <div id="card"></div>
+<main class="wrap docs-page" id="docs-main">
+  <section class="docs-hero docs-hero-compact">
+    <p class="eyebrow">CLI guide</p>
+    <h1 class="docs-title">The command shape mirrors npx skills.</h1>
+    <p class="docs-desc">Use add, use, list, remove, update, and init to manage generated profile installs.</p>
+    
+  </section>
+
+  <div class="docs-shell">
+    <aside class="docs-toc" aria-label="Docs table of contents">
+      <nav>
+        <a href="/docs">Overview</a>
+        <a href="/docs/quickstart">Quickstart</a>
+        <a href="/docs/concepts">Core concepts</a>
+        <a href="/docs/cli" aria-current="page">CLI guide</a>
+        <a href="/docs/installing">Installing</a>
+        <a href="/docs/authoring">Authoring</a>
+        <a href="/docs/harnesses">Harnesses</a>
+        <a href="/docs/safety">Safety</a>
+        <a href="/docs/examples">Examples</a>
+        <a href="/docs/reference">Reference</a>
+        <a href="/docs/troubleshooting">Troubleshooting</a>
+      </nav>
+    </aside>
+    <article class="docs-content">
+      
+      <section class="docs-section docs-section-first">
+        <p class="eyebrow">Commands</p>
+        <h2>Profile lifecycle commands.</h2>
+        <div class="docs-command-list">
+          <div><code>add</code> / <code>install</code><span>Install profiles from a source.</span></div>
+          <div><code>use</code><span>Render one profile without installing it.</span></div>
+          <div><code>list</code> / <code>ls</code><span>Show installed profiles from the registry.</span></div>
+          <div><code>remove</code> / <code>rm</code><span>Remove generated installed profiles.</span></div>
+          <div><code>update</code> / <code>upgrade</code><span>Reinstall from each profile's recorded source.</span></div>
+          <div><code>init</code><span>Create a starter profile source layout.</span></div>
+        </div>
+      </section>
+      <section class="docs-section">
+        <p class="eyebrow">Flags</p>
+        <h2>Common options.</h2>
+        <p>
+          Use <code>--agent</code> or <code>--profile</code> to select profile slugs,
+          <code>--harness</code> to select targets, <code>--dry-run</code> to preview
+          writes, <code>--json</code> for scripts, and <code>--force</code> only when
+          intentionally replacing unmanaged files.
+        </p>
+      </section>
+    
+    </article>
+  </div>
 </main>
 
 <footer class="foot">
@@ -64,6 +116,7 @@
       <span class="brand-name">awesome-agents</span>
     </span>
     <nav aria-label="Footer">
+      <a href="/docs">Docs</a>
       <a href="https://github.com/pablof7z/awesome-agents" rel="noopener">GitHub</a>
       <a href="https://www.npmjs.com/package/awesome-agents" rel="noopener">npm</a>
       <a href="/#leaderboard">Directory</a>
@@ -73,8 +126,6 @@
 </footer>
 
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
-
-<script src="/data.js"></script>
-<script src="/agent.js"></script>
+<script src="/docs.js"></script>
 </body>
 </html>

@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<title>Docs - awesome-agents docs</title>
+<meta name="description" content="Install reusable operational agent profiles, author your own source repositories, and target Codex, Claude Code, OpenCode, or tenex-edge.">
+<meta property="og:title" content="Docs - awesome-agents docs">
+<meta property="og:description" content="Install reusable operational agent profiles, author your own source repositories, and target Codex, Claude Code, OpenCode, or tenex-edge.">
+<meta property="og:type" content="website">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500&family=Fira+Mono:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<a class="skip" href="#docs-main">Skip to docs</a>
+
+<header class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="/" aria-label="awesome-agents home">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <circle cx="10" cy="2" r="1.3" fill="currentColor"/>
+          <path d="M10 3.3v1.7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          <rect x="3" y="6" width="14" height="12" rx="4" stroke="currentColor" stroke-width="1.7"/>
+          <circle cx="7.6" cy="12.3" r="1.4" fill="currentColor"/>
+          <circle cx="12.4" cy="12.3" r="1.4" fill="currentColor"/>
+        </svg>
+      </span>
+      <span class="brand-sep" aria-hidden="true">/</span>
+      <span class="brand-name">awesome-agents</span>
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="/#leaderboard">Agents</a>
+      <a href="/docs" aria-current="page">Docs</a>
+      <a href="https://www.npmjs.com/package/awesome-agents" rel="noopener">npm</a>
+      <a href="https://github.com/pablof7z/awesome-agents" rel="noopener">GitHub</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle color theme">
+        <svg class="ico-sun" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="3.2" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8 .8v2M8 13.2v2M.8 8h2M13.2 8h2M2.9 2.9l1.4 1.4M11.7 11.7l1.4 1.4M13.1 2.9l-1.4 1.4M4.3 11.7l-1.4 1.4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        <svg class="ico-moon" viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 9.3A5.6 5.6 0 0 1 6.7 2.5a5.6 5.6 0 1 0 6.8 6.8Z" fill="currentColor"/></svg>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap docs-page" id="docs-main">
+  <section class="docs-hero docs-hero-compact">
+    <p class="eyebrow">Docs</p>
+    <h1 class="docs-title">Use awesome-agents without leaving the site.</h1>
+    <p class="docs-desc">Install reusable operational agent profiles, author your own source repositories, and target Codex, Claude Code, OpenCode, or tenex-edge.</p>
+    <div class="terminal docs-terminal" role="group" aria-label="Quick install command">
+      <code class="cmd"><span class="tok-prompt">$</span> npx awesome-agents add <span class="tok-arg">owner/repo</span> <span class="tok-flag">--agent</span> <span class="tok-val">triage-agent</span></code>
+      <button class="copy" type="button" data-copy="npx awesome-agents add owner/repo --agent triage-agent" aria-label="Copy quick install command">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="1.4" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M3.2 10.5H2.6A1.1 1.1 0 0 1 1.5 9.4V2.6A1.1 1.1 0 0 1 2.6 1.5h6.8a1.1 1.1 0 0 1 1.1 1.1v.6" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>
+      </button>
+    </div>
+  </section>
+
+  <div class="docs-shell">
+    <aside class="docs-toc" aria-label="Docs table of contents">
+      <nav>
+        <a href="/docs" aria-current="page">Overview</a>
+        <a href="/docs/quickstart">Quickstart</a>
+        <a href="/docs/concepts">Core concepts</a>
+        <a href="/docs/cli">CLI guide</a>
+        <a href="/docs/installing">Installing</a>
+        <a href="/docs/authoring">Authoring</a>
+        <a href="/docs/harnesses">Harnesses</a>
+        <a href="/docs/safety">Safety</a>
+        <a href="/docs/examples">Examples</a>
+        <a href="/docs/reference">Reference</a>
+        <a href="/docs/troubleshooting">Troubleshooting</a>
+      </nav>
+    </aside>
+    <article class="docs-content">
+      
+      <section class="docs-section docs-section-first">
+        <p class="eyebrow">Start here</p>
+        <h2>Pick the workflow you need.</h2>
+        <div class="docs-card-grid">
+          <a class="docs-card" href="/docs/quickstart"><strong>Quickstart</strong><span>Install, preview, and run one profile.</span></a>
+          <a class="docs-card" href="/docs/installing"><strong>Installing</strong><span>Choose sources, profile selectors, harness targets, and scope.</span></a>
+          <a class="docs-card" href="/docs/authoring"><strong>Authoring</strong><span>Create agent.yaml sources with scripts, references, and declared skills.</span></a>
+          <a class="docs-card" href="/docs/harnesses"><strong>Harnesses</strong><span>See where each generated profile file is written.</span></a>
+          <a class="docs-card" href="/docs/cli"><strong>CLI guide</strong><span>Review every command and the common flags.</span></a>
+          <a class="docs-card" href="/docs/troubleshooting"><strong>Troubleshooting</strong><span>Fix missing harnesses, profile lookup, and safety errors.</span></a>
+        </div>
+      </section>
+      <section class="docs-section">
+        <p class="eyebrow">Mental model</p>
+        <h2>Profiles are operational agents, not skills.</h2>
+        <p>
+          The command shape mirrors <code>npx skills</code>, but the installed
+          artifact is an agent profile: identity, role instructions, optional
+          model preference, support material, and harness-specific configuration.
+        </p>
+        <div class="docs-callout">
+          <strong>No default source.</strong>
+          <span>Every install names a local path, GitHub shorthand, or GitHub URL.</span>
+        </div>
+      </section>
+    
+    </article>
+  </div>
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-inner">
+    <span class="brand small">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 20 20" fill="none">
+          <circle cx="10" cy="2" r="1.3" fill="currentColor"/>
+          <path d="M10 3.3v1.7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          <rect x="3" y="6" width="14" height="12" rx="4" stroke="currentColor" stroke-width="1.7"/>
+          <circle cx="7.6" cy="12.3" r="1.4" fill="currentColor"/>
+          <circle cx="12.4" cy="12.3" r="1.4" fill="currentColor"/>
+        </svg>
+      </span>
+      <span class="brand-name">awesome-agents</span>
+    </span>
+    <nav aria-label="Footer">
+      <a href="/docs">Docs</a>
+      <a href="https://github.com/pablof7z/awesome-agents" rel="noopener">GitHub</a>
+      <a href="https://www.npmjs.com/package/awesome-agents" rel="noopener">npm</a>
+      <a href="/#leaderboard">Directory</a>
+    </nav>
+    <span class="foot-note">Command shape mirrors <code>npx&nbsp;skills</code>. The unit is an agent, not a skill.</span>
+  </div>
+</footer>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script src="/docs.js"></script>
+</body>
+</html>
