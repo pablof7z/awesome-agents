@@ -100,6 +100,6 @@ ready
 
 ## Hosted Artifacts
 
-- Plan page: Generated after publishing.
+- Plan page: https://pablof7z.github.io/awesome-agents/plans/public-builder-profiles-agent-model-cards/
 
 - TTS audio: https://blossom.primal.net/2faa2fde8c6b962e1b629f2fb2e212aa6fd5e2e61b07e89e43c63475e0d8c195.mp3
