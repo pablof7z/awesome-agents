@@ -9,6 +9,7 @@ Initial harness targets:
 - Codex
 - Claude Code
 - OpenCode
+- Goose
 - tenex-edge
 
 ## Codex
@@ -54,6 +55,29 @@ Generated OpenCode agents install to:
 
 OpenCode output is Markdown with frontmatter and a generated marker.
 
+## Goose
+
+Generated Goose custom agents install to:
+
+- Project: `.agents/agents/<profile>.md`
+- Global: `$GOOSE_HOME/agents/<profile>.md`, or `~/.agents/agents/<profile>.md`
+
+Run with:
+
+```bash
+goose session
+```
+
+Then invoke the agent by name in the chat session:
+
+```
+@<profile>
+```
+
+Goose output is Markdown with YAML frontmatter (`name`, `description`, optional
+`model`) and a generated marker. The agent body reuses the Claude Code adapter
+when a Goose-specific adapter is not present.
+
 ## tenex-edge
 
 Generated tenex-edge agents install to:
@@ -80,5 +104,6 @@ The generated JSON is a tenex-edge local agent keystore entry with:
 
 Some source repositories may provide Codex adapters first. Claude Code and
 OpenCode use generated defaults unless a source repository adds native adapters
-for those harnesses. tenex-edge uses a native adapter when present, otherwise it
+for those harnesses. Goose reuses the Claude Code adapter when no Goose-specific
+adapter is present. tenex-edge uses a native adapter when present, otherwise it
 reuses the Claude Code adapter before falling back to the base profile.

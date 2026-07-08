@@ -1,7 +1,7 @@
 {
   "name": "awesome-agents",
   "version": "0.1.7",
-  "description": "Install reusable agent profiles into Codex, Claude Code, OpenCode, and tenex-edge.",
+  "description": "Install reusable agent profiles into Codex, Claude Code, OpenCode, Goose, and tenex-edge.",
   "type": "module",
   "bin": {
     "awesome-agents": "bin/awesome-agents.js"
@@ -28,6 +28,7 @@
     "codex",
     "claude-code",
     "opencode",
+    "goose",
     "cli"
   ],
   "author": "Pablo Fernandez",

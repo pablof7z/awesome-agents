@@ -17,7 +17,7 @@ export async function run(argv = process.argv) {
   const program = new Command();
   program
     .name(PACKAGE_NAME)
-    .description("Install reusable agent profiles into Codex, Claude Code, OpenCode, and tenex-edge.")
+    .description("Install reusable agent profiles into Codex, Claude Code, OpenCode, Goose, and tenex-edge.")
     .version(PACKAGE_VERSION, "-v, --version")
     .helpOption("-h, --help", "Show this help message")
     .showHelpAfterError();

@@ -24,8 +24,8 @@ The CLI supports:
   language such as `npx awesome-agents add owner/repo --agent triage-agent`.
 - `--profile <slug>` to select profiles explicitly.
 - `--skill <slug>` as a compatibility alias, even though the artifact is a profile.
-- `--harness <codex|claude-code|opencode|tenex-edge|*>` to select target harnesses.
-- `--agent <codex|claude-code|opencode|tenex-edge|*>` remains accepted as a
+- `--harness <codex|claude-code|opencode|goose|tenex-edge|*>` to select target harnesses.
+- `--agent <codex|claude-code|opencode|goose|tenex-edge|*>` remains accepted as a
   legacy harness selector when the value is a known harness or harness alias.
 - `--all` to install every profile.
 - `--list` to inspect source profiles before installing.
@@ -39,8 +39,8 @@ Accepted implementation decision:
   `$CODEX_HOME/<name>.config.toml`. tenex-edge is also global because invitable
   local agents live under `$TENEX_EDGE_HOME/agents/` or `~/.tenex-edge/agents/`.
 - When no `--harness` or legacy harness-valued `--agent` is provided, the CLI
-  detects supported harness CLIs on `PATH` (`codex`, `claude`, `opencode`, and
-  `tenex-edge`).
+  detects supported harness CLIs on `PATH` (`codex`, `claude`, `opencode`,
+  `goose`, and `tenex-edge`).
 - If one harness is detected, install to it. If multiple harnesses are detected,
   interactive installs open a checkbox selector with every detected harness
   selected by default; noninteractive, `--json`, and `--yes` installs use every

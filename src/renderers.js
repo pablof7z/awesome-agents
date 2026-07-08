@@ -41,6 +41,9 @@ export function renderForAgent(profile, agent, context) {
   if (normalized === "opencode") {
     return renderOpenCode(profile, context);
   }
+  if (normalized === "goose") {
+    return renderGoose(profile, context);
+  }
   if (normalized === "tenex-edge") {
     return renderTenexEdge(profile, context);
   }
@@ -86,6 +89,19 @@ export function resolveTargetPath(profile, agent, options = {}) {
         ? path.resolve(expandHome(process.env.OPENCODE_CONFIG_DIR, home))
         : path.join(process.env.XDG_CONFIG_HOME ? path.resolve(expandHome(process.env.XDG_CONFIG_HOME, home)) : path.join(home, ".config"), "opencode");
     return path.join(opencodeHome, "agents", `${profile.slug}.md`);
+  }
+
+  if (normalized === "goose") {
+    if (scope === "project") {
+      return path.join(cwd, ".agents", "agents", `${profile.slug}.md`);
+    }
+
+    const gooseHome = options.gooseHome
+      ? path.resolve(expandHome(options.gooseHome, home))
+      : process.env.GOOSE_HOME
+        ? path.resolve(expandHome(process.env.GOOSE_HOME, home))
+        : path.join(home, ".agents");
+    return path.join(gooseHome, "agents", `${profile.slug}.md`);
   }
 
   if (normalized === "tenex-edge") {
@@ -169,6 +185,20 @@ function renderOpenCode(profile, context) {
 
   const marker = htmlMarker(profile, "opencode", context);
   return stringifyFrontmatter(attributes, `${marker}\n\n${buildInstructionBody(profile, undefined, "opencode")}`);
+}
+
+function renderGoose(profile, context) {
+  const attributes = {
+    name: profile.slug,
+    description: profile.summary || profile.name
+  };
+  const model = chooseGooseModel(profile);
+  if (model && model !== "inherit") {
+    attributes.model = model;
+  }
+
+  const marker = htmlMarker(profile, "goose", context);
+  return stringifyFrontmatter(attributes, `${marker}\n\n${buildInstructionBody(profile, profile.adapters.goose ?? profile.adapters["claude-code"], "goose")}`);
 }
 
 function renderTenexEdge(profile, context) {
@@ -321,6 +351,27 @@ function chooseOpenCodeModel(profile) {
     ...arrayify(profile.attributes.recommended_models)
   ].filter(Boolean).map(String);
   return candidates.find((model) => model.includes("/"));
+}
+
+function chooseGooseModel(profile) {
+  const candidates = [
+    profile.attributes.recommended_model,
+    ...arrayify(profile.attributes.recommended_models)
+  ].filter(Boolean).map((value) => String(value).toLowerCase());
+
+  if (candidates.some((model) => model.includes("opus"))) {
+    return "claude-3-5-sonnet";
+  }
+  if (candidates.some((model) => model.includes("sonnet"))) {
+    return "claude-3-5-sonnet";
+  }
+  if (candidates.some((model) => model.includes("haiku"))) {
+    return "claude-3-5-haiku";
+  }
+  if (candidates.some((model) => model.includes("gpt"))) {
+    return candidates.find((model) => model.includes("gpt"));
+  }
+  return undefined;
 }
 
 function tenexEdgeKeyMaterial(content) {

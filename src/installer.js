@@ -355,6 +355,20 @@ function runInstructionForOperation(operation, env) {
     };
   }
 
+  if (operation.harness === "goose") {
+    if (!commandExists("goose", env)) {
+      return undefined;
+    }
+    return {
+      profile: operation.profile,
+      name: operation.name,
+      summary: operation.summary,
+      harness: operation.harness,
+      command: "goose session",
+      note: `Start goose, then invoke @${operation.profile} in the session.`
+    };
+  }
+
   if (operation.harness === "tenex-edge") {
     if (!commandExists("tenex-edge", env)) {
       return undefined;

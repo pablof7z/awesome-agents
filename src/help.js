@@ -188,13 +188,13 @@ const banner = [
   color("                       | (_| | (_| |  __/ | | | |_\\__ \\  ", codes.bannerB),
   color("                        \\__,_|\\__, |\\___|_| |_|\\__|___/  ", codes.bannerA),
   color("                              |___/                       ", codes.bannerA),
-  `  ${ui.dim("Operational profiles for Codex, Claude Code, OpenCode, and tenex-edge")}`
+  `  ${ui.dim("Operational profiles for Codex, Claude Code, OpenCode, Goose, and tenex-edge")}`
 ];
 
 const mainHelp = {
   banner,
   usage: `${PACKAGE_NAME} <command> [options]`,
-  description: "Install reusable operational agent profiles into Codex, Claude Code, OpenCode, and tenex-edge.",
+  description: "Install reusable operational agent profiles into Codex, Claude Code, OpenCode, Goose, and tenex-edge.",
   sections: [
     {
       title: "Manage Profiles:",
@@ -290,7 +290,7 @@ const commandHelp = {
         rows: [
           "1. Read canonical definitions from agents/<slug>/agent.yaml or compatible variants.",
           "2. Install agent-owned scripts, references, and declared skills into ~/.agents/homes/<slug>/.",
-          "3. Render Codex, Claude Code, OpenCode, or tenex-edge files and record them in the registry."
+          "3. Render Codex, Claude Code, OpenCode, Goose, or tenex-edge files and record them in the registry."
         ]
       },
       {
@@ -330,6 +330,7 @@ const commandHelp = {
           { term: ui.command("codex"), description: `${ui.path("~/.codex/<profile>.config.toml")} (project-local Codex profiles are not supported)` },
           { term: ui.command("claude-code"), description: `${ui.path("~/.claude/agents/<profile>.md")} or ${ui.path(".claude/agents/<profile>.md")}` },
           { term: ui.command("opencode"), description: `${ui.path("~/.config/opencode/agents/<profile>.md")} or ${ui.path(".opencode/agents/<profile>.md")}` },
+          { term: ui.command("goose"), description: `${ui.path("~/.agents/agents/<profile>.md")} or ${ui.path(".agents/agents/<profile>.md")}` },
           { term: ui.command("tenex-edge"), description: `${ui.path("~/.tenex-edge/agents/<profile>.json")} (project-local tenex-edge agents are not supported)` },
           { term: ui.command("registry"), description: `${ui.path("~/.awesome-agents/installed.json")} or ${ui.path(".awesome-agents/installed.json")}` }
         ]
