@@ -52,7 +52,10 @@
       '<span class="harness-name">Codex</span></span>' +
     '<span class="harness" title="OpenCode">' +
       '<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="3.5" y="6.5" width="25" height="19" rx="3" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M9 13l3.5 3L9 19M15.5 20h7" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
-      '<span class="harness-name">OpenCode</span></span>';
+      '<span class="harness-name">OpenCode</span></span>' +
+    '<span class="harness" title="Goose">' +
+      '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M9.2 21.8c3.4 1.9 7.7 1.7 10.9-.4 2.3-1.5 3.8-3.9 4.1-6.7.2-1.8-.2-3.5-1.2-5l3.2-3.9c.6-.7.1-1.8-.8-1.8h-6.5c-3.5 0-6.4 2.8-6.4 6.4v1.9c0 2.9-2.2 5.3-5 5.6l-2 .2 1.3 1.5c.7.9 1.5 1.6 2.4 2.2Z" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linejoin="round"/><path d="M20.5 8.7h.1M9.8 22.2 7.4 27M16.4 23.2 17.2 27" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/></svg>' +
+      '<span class="harness-name">Goose</span></span>';
 
   var BACK =
     '<a class="card-back" href="/#leaderboard">' +
