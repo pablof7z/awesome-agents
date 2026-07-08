@@ -27,26 +27,38 @@ export async function installProfileSkills(profile, sourceRoot, options = {}) {
   const installed = [];
 
   for (const dependency of dependencies) {
-    const skill = await resolveSkillDependency(profile, dependency, sourceRoot, home, options);
-    const target = path.join(home, ".agents", "homes", profile.slug, "skills", skill.installName);
-
-    if (!options.dryRun) {
-      await fs.rm(target, { recursive: true, force: true });
-      await fs.mkdir(path.dirname(target), { recursive: true });
-      await fs.cp(skill.path, target, {
-        recursive: true,
-        dereference: true,
-        preserveTimestamps: true
-      });
+    let resolved;
+    try {
+      resolved = await resolveSkillDependency(profile, dependency, sourceRoot, home, options);
+    } catch (error) {
+      console.warn(`Skipping skill "${dependency.selector ?? dependency.source}" for profile "${profile.slug}": ${error.message}`);
+      continue;
     }
 
-    installed.push({
-      name: skill.installName,
-      declaredName: dependency.selector ?? dependency.source ?? skill.name,
-      source: skill.source,
-      sourceKind: skill.sourceKind,
-      path: target
-    });
+    const { skill, cleanup } = resolved;
+    try {
+      const target = path.join(home, ".agents", "homes", profile.slug, "skills", skill.installName);
+
+      if (!options.dryRun) {
+        await fs.rm(target, { recursive: true, force: true });
+        await fs.mkdir(path.dirname(target), { recursive: true });
+        await fs.cp(skill.path, target, {
+          recursive: true,
+          dereference: true,
+          preserveTimestamps: true
+        });
+      }
+
+      installed.push({
+        name: skill.installName,
+        declaredName: dependency.selector ?? dependency.source ?? skill.name,
+        source: skill.source,
+        sourceKind: skill.sourceKind,
+        path: target
+      });
+    } finally {
+      await cleanup();
+    }
   }
 
   return installed;
@@ -115,6 +127,8 @@ function looksLikeRemoteSource(value) {
   return value.includes("/") || value.includes(":") || value.startsWith("~") || value.startsWith(".");
 }
 
+const NOOP_CLEANUP = async () => {};
+
 async function resolveSkillDependency(profile, dependency, sourceRoot, home, options) {
   if (dependency.source) {
     const materialized = await materializeSource(dependency.source, {
@@ -122,13 +136,15 @@ async function resolveSkillDependency(profile, dependency, sourceRoot, home, opt
       requireAgentProfileLayout: false
     });
     try {
-      return await selectSkillFromRoot(materialized.path, dependency.selector, {
+      const skill = await selectSkillFromRoot(materialized.path, dependency.selector, {
         dependency,
         source: materialized.source,
         sourceKind: materialized.kind
       });
-    } finally {
+      return { skill, cleanup: materialized.cleanup };
+    } catch (error) {
       await materialized.cleanup();
+      throw error;
     }
   }
 
@@ -138,7 +154,7 @@ async function resolveSkillDependency(profile, dependency, sourceRoot, home, opt
     sourceKind: "profile-local"
   });
   if (profileSkill) {
-    return profileSkill;
+    return { skill: profileSkill, cleanup: NOOP_CLEANUP };
   }
 
   const sourceSkill = await findSkillInRoot(sourceRoot, dependency.selector, {
@@ -147,7 +163,7 @@ async function resolveSkillDependency(profile, dependency, sourceRoot, home, opt
     sourceKind: "local-source"
   });
   if (sourceSkill) {
-    return sourceSkill;
+    return { skill: sourceSkill, cleanup: NOOP_CLEANUP };
   }
 
   const userSkillRoot = path.join(home, ".agents", "skills");
@@ -157,7 +173,7 @@ async function resolveSkillDependency(profile, dependency, sourceRoot, home, opt
     sourceKind: "user-skills"
   });
   if (userSkill) {
-    return userSkill;
+    return { skill: userSkill, cleanup: NOOP_CLEANUP };
   }
 
   throw new Error(`Skill "${dependency.selector}" was not found in the profile source or ${userSkillRoot}.`);
@@ -246,7 +262,13 @@ async function discoverSkills(root) {
       return true;
     }
 
-    const skill = await readSkill(skillDir, root);
+    let skill;
+    try {
+      skill = await readSkill(skillDir, root);
+    } catch (error) {
+      console.warn(`Skipping unreadable skill at ${skillDir}: ${error.message}`);
+      return true;
+    }
     if (seenNames.has(skill.installName)) {
       return true;
     }
