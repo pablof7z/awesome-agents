@@ -94,8 +94,10 @@ tenex-edge launch <profile>
 The generated JSON is a tenex-edge local agent keystore entry with:
 
 - a generated Nostr keypair, preserved across reinstalls
-- `command: ["claude"]`
-- an inline Claude `agent` definition passed by tenex-edge as `--agents`
+- `commands` entries with launch argv that load the installed profile, such as
+  `codex --profile <profile>` or `claude --agent <profile>`
+- an inline Claude `agent` definition passed by tenex-edge as `--agents` for
+  the generated fallback command when no Claude Code profile command is present
 - a byline derived from the profile summary
 
 ## Adapter Gaps

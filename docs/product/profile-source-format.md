@@ -10,6 +10,7 @@ The source format is intentionally repo-neutral:
 agents/
   <profile>/
     agent.yaml
+    README.md
     skills/
     scripts/
     references/
@@ -27,6 +28,16 @@ Optional agent-owned support material lives at:
 agents/<profile>/scripts/*
 agents/<profile>/references/*
 ```
+
+Optional site-facing documentation lives at:
+
+```text
+agents/<profile>/README.md
+```
+
+This README is intended for the public model-card page on
+`awesome-agents.com/<handle>/<repo>/<profile>`. It complements the runtime
+profile definition; it should not be treated as the installable prompt.
 
 Immediately relevant skills can be declared in the profile definition:
 

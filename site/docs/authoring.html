@@ -6,10 +6,10 @@
 <meta name="color-scheme" content="dark light">
 <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-<title>Docs - awesome-agents docs</title>
-<meta name="description" content="Install reusable operational agent profiles, author your own source repositories, and target Codex, Claude Code, OpenCode, Goose, or tenex-edge.">
-<meta property="og:title" content="Docs - awesome-agents docs">
-<meta property="og:description" content="Install reusable operational agent profiles, author your own source repositories, and target Codex, Claude Code, OpenCode, Goose, or tenex-edge.">
+<title>Authoring Profiles - awesome-agents docs</title>
+<meta name="description" content="A source repository contains reusable agent definitions and support material under agents/&lt;slug&gt;/.">
+<meta property="og:title" content="Authoring Profiles - awesome-agents docs">
+<meta property="og:description" content="A source repository contains reusable agent definitions and support material under agents/&lt;slug&gt;/.">
 <meta property="og:type" content="website">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -50,26 +50,21 @@
 
 <main class="wrap docs-page" id="docs-main">
   <section class="docs-hero docs-hero-compact">
-    <p class="eyebrow">Docs</p>
-    <h1 class="docs-title">Use awesome-agents without leaving the site.</h1>
-    <p class="docs-desc">Install reusable operational agent profiles, author your own source repositories, and target Codex, Claude Code, OpenCode, Goose, or tenex-edge.</p>
-    <div class="terminal docs-terminal" role="group" aria-label="Quick install command">
-      <code class="cmd"><span class="tok-prompt">$</span> npx awesome-agents add <span class="tok-arg">owner/repo</span> <span class="tok-flag">--agent</span> <span class="tok-val">triage-agent</span></code>
-      <button class="copy" type="button" data-copy="npx awesome-agents add owner/repo --agent triage-agent" aria-label="Copy quick install command">
-        <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="1.4" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M3.2 10.5H2.6A1.1 1.1 0 0 1 1.5 9.4V2.6A1.1 1.1 0 0 1 2.6 1.5h6.8a1.1 1.1 0 0 1 1.1 1.1v.6" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>
-      </button>
-    </div>
+    <p class="eyebrow">Authoring</p>
+    <h1 class="docs-title">Create neutral agent-profile sources.</h1>
+    <p class="docs-desc">A source repository contains reusable agent definitions and support material under agents/<slug>/.</p>
+    
   </section>
 
   <div class="docs-shell">
     <aside class="docs-toc" aria-label="Docs table of contents">
       <nav>
-        <a href="/docs" aria-current="page">Overview</a>
+        <a href="/docs">Overview</a>
         <a href="/docs/quickstart">Quickstart</a>
         <a href="/docs/concepts">Core concepts</a>
         <a href="/docs/cli">CLI guide</a>
         <a href="/docs/installing">Installing</a>
-        <a href="/docs/authoring">Authoring</a>
+        <a href="/docs/authoring" aria-current="page">Authoring</a>
         <a href="/docs/harnesses">Harnesses</a>
         <a href="/docs/safety">Safety</a>
         <a href="/docs/examples">Examples</a>
@@ -80,29 +75,37 @@
     <article class="docs-content">
       
       <section class="docs-section docs-section-first">
-        <p class="eyebrow">Start here</p>
-        <h2>Pick the workflow you need.</h2>
-        <div class="docs-card-grid">
-          <a class="docs-card" href="/docs/quickstart"><strong>Quickstart</strong><span>Install, preview, and run one profile.</span></a>
-          <a class="docs-card" href="/docs/installing"><strong>Installing</strong><span>Choose sources, profile selectors, harness targets, and scope.</span></a>
-          <a class="docs-card" href="/docs/authoring"><strong>Authoring</strong><span>Create agent.yaml sources with scripts, references, and declared skills.</span></a>
-          <a class="docs-card" href="/docs/harnesses"><strong>Harnesses</strong><span>See where each generated profile file is written.</span></a>
-          <a class="docs-card" href="/docs/cli"><strong>CLI guide</strong><span>Review every command and the common flags.</span></a>
-          <a class="docs-card" href="/docs/troubleshooting"><strong>Troubleshooting</strong><span>Fix missing harnesses, profile lookup, and safety errors.</span></a>
-        </div>
+        <p class="eyebrow">Layout</p>
+        <h2>Put each profile under agents/&lt;slug&gt;/.</h2>
+        <pre class="docs-code"><code>agents/
+  triage-agent/
+    agent.yaml
+  ops-agent/
+    agent.agf.yaml
+    scripts/
+      heartbeat.sh
+    references/
+      runbook.md</code></pre>
       </section>
       <section class="docs-section">
-        <p class="eyebrow">Mental model</p>
-        <h2>Profiles are operational agents, not skills.</h2>
+        <p class="eyebrow">YAML</p>
+        <h2>Minimal profile definition.</h2>
+        <pre class="docs-code"><code>id: triage-agent
+name: Triage Agent
+description: Sorts work, identifies blockers, and routes tasks.
+model: inherit
+instructions: |
+  You are the triage-agent profile.
+  Preserve stated priority order, call out blockers, and leave concise handoffs.</code></pre>
+      </section>
+      <section class="docs-section">
+        <p class="eyebrow">Support material</p>
+        <h2>Scripts, references, and declared skills are installed into the profile home.</h2>
         <p>
-          The command shape mirrors <code>npx skills</code>, but the installed
-          artifact is an agent profile: identity, role instructions, optional
-          model preference, support material, and harness-specific configuration.
+          Agent-owned <code>scripts/</code>, <code>references/</code>, and declared
+          <code>skills</code> install into <code>~/.agents/homes/&lt;slug&gt;/</code>.
+          The rendered prompt includes complete paths so the harness can find them.
         </p>
-        <div class="docs-callout">
-          <strong>No default source.</strong>
-          <span>Every install names a local path, GitHub shorthand, or GitHub URL.</span>
-        </div>
       </section>
     
     </article>

@@ -47,7 +47,8 @@ export async function installFromSource(sourceSpec, options = {}) {
         const existingContent = await readExistingContent(target);
         const content = renderForAgent(renderProfile, harness, {
           source: materialized.source,
-          existingContent
+          existingContent,
+          selectedHarnesses: harnesses
         });
         await writeManagedFile(target, content, options);
 

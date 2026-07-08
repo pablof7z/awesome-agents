@@ -11,6 +11,7 @@ unless the user confirms them.
 - `product-scope.md`: What `awesome-agents` is for and how it differs from skills.
 - `command-model.md`: Command shape, `npx skills` parity, defaults, and scriptability.
 - `profile-source-format.md`: Source repositories, canonical profiles, adapters, and install sources.
+- `site-profiles-and-model-cards.md`: Public builder profiles, agent model cards, GitHub login, and README-backed site content.
 - `harness-targets.md`: Codex, Claude Code, OpenCode, Goose, and tenex-edge rendering/target behavior.
 - `safety-and-publishing.md`: Install safety, registry behavior, verification, and npm/GitHub publish state.
 - `open-questions.md`: Unresolved product questions.
