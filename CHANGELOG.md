@@ -2,6 +2,29 @@
 
 This file is maintained by `npm run changelog` and `npm run release`. Release entries are generated from git commit history.
 
+## 0.1.8 - 2026-07-08
+
+Changes since `v0.1.6`.
+
+### Added
+
+- Add "What is an agent?" marketing page and link it site-wide (fa8255e)
+- Add Goose to site harness surfaces (7a444cf)
+- Add Goose harness support (#9) (c4049f2)
+- Add public builder profile prototype (e78202e)
+- Add plan for public-builder-profiles-agent-model-cards (64e254a)
+- Add generated docs site (8eb21ba)
+
+### Changed
+
+- Prepare 0.1.7 release (342e93d)
+- Link hosted artifacts for public-builder-profiles-agent-model-cards (0f76238)
+- Update tenex-edge launch commands (cc304e2)
+
+### Documentation
+
+- rebuild /docs in the shadcn-docs layout (878803c)
+
 ## 0.1.7 - 2026-07-07
 
 Changes since `v0.1.6`.
