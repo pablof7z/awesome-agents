@@ -19,6 +19,14 @@ const navItems = [
   ["Troubleshooting", "/docs/troubleshooting"]
 ];
 
+// Grouped sidebar (shadcn-docs style). Flat navItems above drives prev/next.
+const navGroups = [
+  ["Getting started", ["/docs", "/docs/quickstart", "/docs/concepts"]],
+  ["Guides", ["/docs/cli", "/docs/installing", "/docs/authoring", "/docs/harnesses", "/docs/safety"]],
+  ["Reference", ["/docs/examples", "/docs/reference", "/docs/troubleshooting"]],
+];
+const navLabel = Object.fromEntries(navItems.map(([label, href]) => [href, label]));
+
 const pages = [
   {
     slug: "index",
@@ -360,7 +368,98 @@ function escapeHtml(value) {
     .replaceAll('"', "&quot;");
 }
 
+function slugify(value) {
+  return String(value)
+    .replace(/<[^>]+>/g, "")
+    .toLowerCase()
+    .replace(/&[a-z]+;/g, " ")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+// Inject stable ids onto each docs-section and collect an on-this-page TOC
+// from the first <h2> of each section. Drives the right-hand column.
+function withAnchors(body) {
+  const toc = [];
+  const html = body.replace(
+    /<section class="(docs-section[^"]*)">([\s\S]*?)<h2>([\s\S]*?)<\/h2>/g,
+    (match, cls, mid, heading) => {
+      const id = slugify(heading);
+      const title = heading.replace(/<[^>]+>/g, "").replace(/\.$/, "").trim();
+      toc.push({ id, title });
+      return `<section class="${cls}" id="${id}">${mid}<h2>${heading}</h2>`;
+    },
+  );
+  return { html, toc };
+}
+
+function onThisPage(toc) {
+  if (toc.length < 2) return "";
+  return `<nav aria-label="On this page">
+        ${toc.map((t) => `<a href="#${t.id}">${t.title}</a>`).join("\n        ")}
+      </nav>`;
+}
+
+function sidebar(page) {
+  const groups = navGroups.map(([label, hrefs]) => {
+    const links = hrefs.map((href) => {
+      const active = href === page.path ? ' aria-current="page"' : "";
+      return `<a href="${href}"${active}>${navLabel[href]}</a>`;
+    }).join("\n          ");
+    return `<div class="docs-side-group">
+          <p class="docs-side-label">${label}</p>
+          ${links}
+        </div>`;
+  }).join("\n        ");
+  return `<div class="docs-side-inner">
+        <label class="docs-search">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M10.5 10.5 14 14" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          <input type="search" id="docs-filter" placeholder="Search documentation…" aria-label="Filter documentation" autocomplete="off">
+        </label>
+        ${groups}
+      </div>`;
+}
+
+function docActions(page) {
+  const idx = navItems.findIndex(([, href]) => href === page.path);
+  const prev = navItems[idx - 1];
+  const next = navItems[idx + 1];
+  const copyUrl = `https://awesome-agents.com${page.path}`;
+  const arrow = (item, dir) => {
+    const glyph = dir === "prev" ? "&larr;" : "&rarr;";
+    if (!item) return `<span class="docs-nav-btn is-disabled" aria-hidden="true">${glyph}</span>`;
+    return `<a class="docs-nav-btn" href="${item[1]}" aria-label="${dir === "prev" ? "Previous" : "Next"}: ${item[0]}">${glyph}</a>`;
+  };
+  return `<div class="docs-actions">
+          <button class="docs-copy" type="button" data-copy="${copyUrl}" aria-label="Copy page link">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M10.5 5.5v-1a1.6 1.6 0 0 0-1.6-1.6H3.6A1.6 1.6 0 0 0 2 4.5v5.3A1.6 1.6 0 0 0 3.6 11.4h1" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>
+            Copy Page
+          </button>
+          ${arrow(prev, "prev")}
+          ${arrow(next, "next")}
+        </div>`;
+}
+
+function prevNext(page) {
+  const idx = navItems.findIndex(([, href]) => href === page.path);
+  const prev = navItems[idx - 1];
+  const next = navItems[idx + 1];
+  if (!prev && !next) return "";
+  const cell = (item, dir) => {
+    if (!item) return `<span></span>`;
+    return `<a class="docs-pager ${dir}" href="${item[1]}">
+          <span class="docs-pager-dir">${dir === "prev" ? "Previous" : "Next"}</span>
+          <span class="docs-pager-title">${item[0]}</span>
+        </a>`;
+  };
+  return `<nav class="docs-pager-row" aria-label="Page navigation">
+        ${cell(prev, "prev")}
+        ${cell(next, "next")}
+      </nav>`;
+}
+
 function render(page) {
+  const { html: bodyHtml, toc } = withAnchors(page.body);
   return `<!doctype html>
 <html lang="en" class="dark">
 <head>
@@ -380,30 +479,43 @@ function render(page) {
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500&family=Fira+Mono:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="/styles.css">
 </head>
-<body>
+<body class="docs-theme">
 <a class="skip" href="#docs-main">Skip to docs</a>
 
 ${header()}
 
-<main class="wrap docs-page" id="docs-main">
-  <section class="docs-hero docs-hero-compact">
-    <p class="eyebrow">${page.eyebrow}</p>
-    <h1 class="docs-title">${page.h1}</h1>
-    <p class="docs-desc">${page.description}</p>
-    ${page.slug === "index" ? quickCommand() : ""}
-  </section>
+<div class="docs-layout">
+  <aside class="docs-sidebar" aria-label="Docs navigation">
+    ${sidebar(page)}
+  </aside>
 
-  <div class="docs-shell">
-    <aside class="docs-toc" aria-label="Docs table of contents">
-      <nav>
-        ${navItems.map(([label, href]) => `<a href="${href}"${href === page.path ? ' aria-current="page"' : ""}>${label}</a>`).join("\n        ")}
-      </nav>
-    </aside>
-    <article class="docs-content">
-      ${page.body}
+  <main class="docs-main" id="docs-main">
+    <article class="docs-article">
+      <header class="docs-article-head">
+        <div class="docs-article-heading">
+          <h1>${page.h1 || page.title}</h1>
+          <p class="docs-lead">${page.description}</p>
+        </div>
+        ${docActions(page)}
+      </header>
+      ${page.slug === "index" ? quickCommand() : ""}
+      ${bodyHtml}
+      ${prevNext(page)}
     </article>
-  </div>
-</main>
+  </main>
+
+  <aside class="docs-onthis" aria-label="On this page">
+    <div class="docs-onthis-inner">
+      <p class="docs-onthis-label">On this page</p>
+      ${onThisPage(toc)}
+      <a class="docs-promo" href="/docs/quickstart">
+        <span class="docs-promo-title">New to profiles?</span>
+        <span class="docs-promo-text">Install, preview, and run your first agent in under a minute.</span>
+        <span class="docs-promo-cta">Start the quickstart &rarr;</span>
+      </a>
+    </div>
+  </aside>
+</div>
 
 ${footer()}
 

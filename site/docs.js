@@ -50,8 +50,42 @@
     if (!btn) return;
     copyText(btn.getAttribute("data-copy")).then(function () {
       btn.classList.add("copied");
-      showToast("Copied command");
+      showToast(btn.classList.contains("docs-copy") ? "Copied page link" : "Copied command");
       setTimeout(function () { btn.classList.remove("copied"); }, 1400);
     });
   });
+
+  // Sidebar filter
+  var filter = document.getElementById("docs-filter");
+  if (filter) {
+    filter.addEventListener("input", function () {
+      var q = filter.value.trim().toLowerCase();
+      document.querySelectorAll(".docs-side-group").forEach(function (group) {
+        var any = false;
+        group.querySelectorAll("a").forEach(function (a) {
+          var match = a.textContent.toLowerCase().indexOf(q) !== -1;
+          a.style.display = match ? "" : "none";
+          if (match) any = true;
+        });
+        group.style.display = any ? "" : "none";
+      });
+    });
+  }
+
+  // Scroll-spy for the "On this page" list
+  var tocLinks = [].slice.call(document.querySelectorAll(".docs-onthis a[href^='#']"));
+  if (tocLinks.length) {
+    var targets = tocLinks
+      .map(function (a) { return document.getElementById(a.getAttribute("href").slice(1)); })
+      .filter(Boolean);
+    var spy = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        tocLinks.forEach(function (a) {
+          a.classList.toggle("is-active", a.getAttribute("href") === "#" + entry.target.id);
+        });
+      });
+    }, { rootMargin: "0px 0px -75% 0px", threshold: 0 });
+    targets.forEach(function (t) { spy.observe(t); });
+  }
 })();

@@ -17,7 +17,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500&family=Fira+Mono:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="/styles.css">
 </head>
-<body>
+<body class="docs-theme">
 <a class="skip" href="#docs-main">Skip to docs</a>
 
 <header class="nav">
@@ -48,38 +48,60 @@
   </div>
 </header>
 
-<main class="wrap docs-page" id="docs-main">
-  <section class="docs-hero docs-hero-compact">
-    <p class="eyebrow">Docs</p>
-    <h1 class="docs-title">Use awesome-agents without leaving the site.</h1>
-    <p class="docs-desc">Install reusable operational agent profiles, author your own source repositories, and target Codex, Claude Code, OpenCode, Goose, or tenex-edge.</p>
-    <div class="terminal docs-terminal" role="group" aria-label="Quick install command">
+<div class="docs-layout">
+  <aside class="docs-sidebar" aria-label="Docs navigation">
+    <div class="docs-side-inner">
+        <label class="docs-search">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M10.5 10.5 14 14" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          <input type="search" id="docs-filter" placeholder="Search documentation…" aria-label="Filter documentation" autocomplete="off">
+        </label>
+        <div class="docs-side-group">
+          <p class="docs-side-label">Getting started</p>
+          <a href="/docs" aria-current="page">Overview</a>
+          <a href="/docs/quickstart">Quickstart</a>
+          <a href="/docs/concepts">Core concepts</a>
+        </div>
+        <div class="docs-side-group">
+          <p class="docs-side-label">Guides</p>
+          <a href="/docs/cli">CLI guide</a>
+          <a href="/docs/installing">Installing</a>
+          <a href="/docs/authoring">Authoring</a>
+          <a href="/docs/harnesses">Harnesses</a>
+          <a href="/docs/safety">Safety</a>
+        </div>
+        <div class="docs-side-group">
+          <p class="docs-side-label">Reference</p>
+          <a href="/docs/examples">Examples</a>
+          <a href="/docs/reference">Reference</a>
+          <a href="/docs/troubleshooting">Troubleshooting</a>
+        </div>
+      </div>
+  </aside>
+
+  <main class="docs-main" id="docs-main">
+    <article class="docs-article">
+      <header class="docs-article-head">
+        <div class="docs-article-heading">
+          <h1>Use awesome-agents without leaving the site.</h1>
+          <p class="docs-lead">Install reusable operational agent profiles, author your own source repositories, and target Codex, Claude Code, OpenCode, Goose, or tenex-edge.</p>
+        </div>
+        <div class="docs-actions">
+          <button class="docs-copy" type="button" data-copy="https://awesome-agents.com/docs" aria-label="Copy page link">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M10.5 5.5v-1a1.6 1.6 0 0 0-1.6-1.6H3.6A1.6 1.6 0 0 0 2 4.5v5.3A1.6 1.6 0 0 0 3.6 11.4h1" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>
+            Copy Page
+          </button>
+          <span class="docs-nav-btn is-disabled" aria-hidden="true">&larr;</span>
+          <a class="docs-nav-btn" href="/docs/quickstart" aria-label="Next: Quickstart">&rarr;</a>
+        </div>
+      </header>
+      <div class="terminal docs-terminal" role="group" aria-label="Quick install command">
       <code class="cmd"><span class="tok-prompt">$</span> npx awesome-agents add <span class="tok-arg">owner/repo</span> <span class="tok-flag">--agent</span> <span class="tok-val">triage-agent</span></code>
       <button class="copy" type="button" data-copy="npx awesome-agents add owner/repo --agent triage-agent" aria-label="Copy quick install command">
         <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="1.4" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M3.2 10.5H2.6A1.1 1.1 0 0 1 1.5 9.4V2.6A1.1 1.1 0 0 1 2.6 1.5h6.8a1.1 1.1 0 0 1 1.1 1.1v.6" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>
       </button>
     </div>
-  </section>
-
-  <div class="docs-shell">
-    <aside class="docs-toc" aria-label="Docs table of contents">
-      <nav>
-        <a href="/docs" aria-current="page">Overview</a>
-        <a href="/docs/quickstart">Quickstart</a>
-        <a href="/docs/concepts">Core concepts</a>
-        <a href="/docs/cli">CLI guide</a>
-        <a href="/docs/installing">Installing</a>
-        <a href="/docs/authoring">Authoring</a>
-        <a href="/docs/harnesses">Harnesses</a>
-        <a href="/docs/safety">Safety</a>
-        <a href="/docs/examples">Examples</a>
-        <a href="/docs/reference">Reference</a>
-        <a href="/docs/troubleshooting">Troubleshooting</a>
-      </nav>
-    </aside>
-    <article class="docs-content">
       
-      <section class="docs-section docs-section-first">
+      <section class="docs-section docs-section-first" id="pick-the-workflow-you-need">
         <p class="eyebrow">Start here</p>
         <h2>Pick the workflow you need.</h2>
         <div class="docs-card-grid">
@@ -91,7 +113,7 @@
           <a class="docs-card" href="/docs/troubleshooting"><strong>Troubleshooting</strong><span>Fix missing harnesses, profile lookup, and safety errors.</span></a>
         </div>
       </section>
-      <section class="docs-section">
+      <section class="docs-section" id="profiles-are-operational-agents-not-skills">
         <p class="eyebrow">Mental model</p>
         <h2>Profiles are operational agents, not skills.</h2>
         <p>
@@ -105,9 +127,31 @@
         </div>
       </section>
     
+      <nav class="docs-pager-row" aria-label="Page navigation">
+        <span></span>
+        <a class="docs-pager next" href="/docs/quickstart">
+          <span class="docs-pager-dir">Next</span>
+          <span class="docs-pager-title">Quickstart</span>
+        </a>
+      </nav>
     </article>
-  </div>
-</main>
+  </main>
+
+  <aside class="docs-onthis" aria-label="On this page">
+    <div class="docs-onthis-inner">
+      <p class="docs-onthis-label">On this page</p>
+      <nav aria-label="On this page">
+        <a href="#pick-the-workflow-you-need">Pick the workflow you need</a>
+        <a href="#profiles-are-operational-agents-not-skills">Profiles are operational agents, not skills</a>
+      </nav>
+      <a class="docs-promo" href="/docs/quickstart">
+        <span class="docs-promo-title">New to profiles?</span>
+        <span class="docs-promo-text">Install, preview, and run your first agent in under a minute.</span>
+        <span class="docs-promo-cta">Start the quickstart &rarr;</span>
+      </a>
+    </div>
+  </aside>
+</div>
 
 <footer class="foot">
   <div class="wrap foot-inner">

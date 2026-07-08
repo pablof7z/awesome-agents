@@ -17,7 +17,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500&family=Fira+Mono:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="/styles.css">
 </head>
-<body>
+<body class="docs-theme">
 <a class="skip" href="#docs-main">Skip to docs</a>
 
 <header class="nav">
@@ -48,40 +48,62 @@
   </div>
 </header>
 
-<main class="wrap docs-page" id="docs-main">
-  <section class="docs-hero docs-hero-compact">
-    <p class="eyebrow">Installing</p>
-    <h1 class="docs-title">Choose a source, profile, harness, and scope.</h1>
-    <p class="docs-desc">Install one profile, many profiles, one harness, or every detected harness.</p>
-    
-  </section>
+<div class="docs-layout">
+  <aside class="docs-sidebar" aria-label="Docs navigation">
+    <div class="docs-side-inner">
+        <label class="docs-search">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M10.5 10.5 14 14" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          <input type="search" id="docs-filter" placeholder="Search documentation…" aria-label="Filter documentation" autocomplete="off">
+        </label>
+        <div class="docs-side-group">
+          <p class="docs-side-label">Getting started</p>
+          <a href="/docs">Overview</a>
+          <a href="/docs/quickstart">Quickstart</a>
+          <a href="/docs/concepts">Core concepts</a>
+        </div>
+        <div class="docs-side-group">
+          <p class="docs-side-label">Guides</p>
+          <a href="/docs/cli">CLI guide</a>
+          <a href="/docs/installing" aria-current="page">Installing</a>
+          <a href="/docs/authoring">Authoring</a>
+          <a href="/docs/harnesses">Harnesses</a>
+          <a href="/docs/safety">Safety</a>
+        </div>
+        <div class="docs-side-group">
+          <p class="docs-side-label">Reference</p>
+          <a href="/docs/examples">Examples</a>
+          <a href="/docs/reference">Reference</a>
+          <a href="/docs/troubleshooting">Troubleshooting</a>
+        </div>
+      </div>
+  </aside>
 
-  <div class="docs-shell">
-    <aside class="docs-toc" aria-label="Docs table of contents">
-      <nav>
-        <a href="/docs">Overview</a>
-        <a href="/docs/quickstart">Quickstart</a>
-        <a href="/docs/concepts">Core concepts</a>
-        <a href="/docs/cli">CLI guide</a>
-        <a href="/docs/installing" aria-current="page">Installing</a>
-        <a href="/docs/authoring">Authoring</a>
-        <a href="/docs/harnesses">Harnesses</a>
-        <a href="/docs/safety">Safety</a>
-        <a href="/docs/examples">Examples</a>
-        <a href="/docs/reference">Reference</a>
-        <a href="/docs/troubleshooting">Troubleshooting</a>
-      </nav>
-    </aside>
-    <article class="docs-content">
+  <main class="docs-main" id="docs-main">
+    <article class="docs-article">
+      <header class="docs-article-head">
+        <div class="docs-article-heading">
+          <h1>Choose a source, profile, harness, and scope.</h1>
+          <p class="docs-lead">Install one profile, many profiles, one harness, or every detected harness.</p>
+        </div>
+        <div class="docs-actions">
+          <button class="docs-copy" type="button" data-copy="https://awesome-agents.com/docs/installing" aria-label="Copy page link">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M10.5 5.5v-1a1.6 1.6 0 0 0-1.6-1.6H3.6A1.6 1.6 0 0 0 2 4.5v5.3A1.6 1.6 0 0 0 3.6 11.4h1" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>
+            Copy Page
+          </button>
+          <a class="docs-nav-btn" href="/docs/cli" aria-label="Previous: CLI guide">&larr;</a>
+          <a class="docs-nav-btn" href="/docs/authoring" aria-label="Next: Authoring">&rarr;</a>
+        </div>
+      </header>
       
-      <section class="docs-section docs-section-first">
+      
+      <section class="docs-section docs-section-first" id="name-the-source-explicitly">
         <p class="eyebrow">Sources</p>
         <h2>Name the source explicitly.</h2>
         <pre class="docs-code"><code>npx awesome-agents add ./local-profile-source --agent triage-agent
 npx awesome-agents add owner/repo --agent triage-agent
 npx awesome-agents add https://github.com/owner/repo --agent triage-agent</code></pre>
       </section>
-      <section class="docs-section">
+      <section class="docs-section" id="select-profiles-with-agent-language">
         <p class="eyebrow">Selectors</p>
         <h2>Select profiles with agent language.</h2>
         <p>
@@ -91,7 +113,7 @@ npx awesome-agents add https://github.com/owner/repo --agent triage-agent</code>
           agent profile.
         </p>
       </section>
-      <section class="docs-section">
+      <section class="docs-section" id="override-detection-when-needed">
         <p class="eyebrow">Harnesses</p>
         <h2>Override detection when needed.</h2>
         <pre class="docs-code"><code>npx awesome-agents add owner/repo --agent triage-agent --harness codex
@@ -104,9 +126,35 @@ npx awesome-agents add owner/repo --all --harness '*'</code></pre>
         </p>
       </section>
     
+      <nav class="docs-pager-row" aria-label="Page navigation">
+        <a class="docs-pager prev" href="/docs/cli">
+          <span class="docs-pager-dir">Previous</span>
+          <span class="docs-pager-title">CLI guide</span>
+        </a>
+        <a class="docs-pager next" href="/docs/authoring">
+          <span class="docs-pager-dir">Next</span>
+          <span class="docs-pager-title">Authoring</span>
+        </a>
+      </nav>
     </article>
-  </div>
-</main>
+  </main>
+
+  <aside class="docs-onthis" aria-label="On this page">
+    <div class="docs-onthis-inner">
+      <p class="docs-onthis-label">On this page</p>
+      <nav aria-label="On this page">
+        <a href="#name-the-source-explicitly">Name the source explicitly</a>
+        <a href="#select-profiles-with-agent-language">Select profiles with agent language</a>
+        <a href="#override-detection-when-needed">Override detection when needed</a>
+      </nav>
+      <a class="docs-promo" href="/docs/quickstart">
+        <span class="docs-promo-title">New to profiles?</span>
+        <span class="docs-promo-text">Install, preview, and run your first agent in under a minute.</span>
+        <span class="docs-promo-cta">Start the quickstart &rarr;</span>
+      </a>
+    </div>
+  </aside>
+</div>
 
 <footer class="foot">
   <div class="wrap foot-inner">

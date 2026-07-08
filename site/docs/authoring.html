@@ -17,7 +17,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500&family=Fira+Mono:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="/styles.css">
 </head>
-<body>
+<body class="docs-theme">
 <a class="skip" href="#docs-main">Skip to docs</a>
 
 <header class="nav">
@@ -48,33 +48,55 @@
   </div>
 </header>
 
-<main class="wrap docs-page" id="docs-main">
-  <section class="docs-hero docs-hero-compact">
-    <p class="eyebrow">Authoring</p>
-    <h1 class="docs-title">Create neutral agent-profile sources.</h1>
-    <p class="docs-desc">A source repository contains reusable agent definitions and support material under agents/<slug>/.</p>
-    
-  </section>
+<div class="docs-layout">
+  <aside class="docs-sidebar" aria-label="Docs navigation">
+    <div class="docs-side-inner">
+        <label class="docs-search">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M10.5 10.5 14 14" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          <input type="search" id="docs-filter" placeholder="Search documentation…" aria-label="Filter documentation" autocomplete="off">
+        </label>
+        <div class="docs-side-group">
+          <p class="docs-side-label">Getting started</p>
+          <a href="/docs">Overview</a>
+          <a href="/docs/quickstart">Quickstart</a>
+          <a href="/docs/concepts">Core concepts</a>
+        </div>
+        <div class="docs-side-group">
+          <p class="docs-side-label">Guides</p>
+          <a href="/docs/cli">CLI guide</a>
+          <a href="/docs/installing">Installing</a>
+          <a href="/docs/authoring" aria-current="page">Authoring</a>
+          <a href="/docs/harnesses">Harnesses</a>
+          <a href="/docs/safety">Safety</a>
+        </div>
+        <div class="docs-side-group">
+          <p class="docs-side-label">Reference</p>
+          <a href="/docs/examples">Examples</a>
+          <a href="/docs/reference">Reference</a>
+          <a href="/docs/troubleshooting">Troubleshooting</a>
+        </div>
+      </div>
+  </aside>
 
-  <div class="docs-shell">
-    <aside class="docs-toc" aria-label="Docs table of contents">
-      <nav>
-        <a href="/docs">Overview</a>
-        <a href="/docs/quickstart">Quickstart</a>
-        <a href="/docs/concepts">Core concepts</a>
-        <a href="/docs/cli">CLI guide</a>
-        <a href="/docs/installing">Installing</a>
-        <a href="/docs/authoring" aria-current="page">Authoring</a>
-        <a href="/docs/harnesses">Harnesses</a>
-        <a href="/docs/safety">Safety</a>
-        <a href="/docs/examples">Examples</a>
-        <a href="/docs/reference">Reference</a>
-        <a href="/docs/troubleshooting">Troubleshooting</a>
-      </nav>
-    </aside>
-    <article class="docs-content">
+  <main class="docs-main" id="docs-main">
+    <article class="docs-article">
+      <header class="docs-article-head">
+        <div class="docs-article-heading">
+          <h1>Create neutral agent-profile sources.</h1>
+          <p class="docs-lead">A source repository contains reusable agent definitions and support material under agents/<slug>/.</p>
+        </div>
+        <div class="docs-actions">
+          <button class="docs-copy" type="button" data-copy="https://awesome-agents.com/docs/authoring" aria-label="Copy page link">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M10.5 5.5v-1a1.6 1.6 0 0 0-1.6-1.6H3.6A1.6 1.6 0 0 0 2 4.5v5.3A1.6 1.6 0 0 0 3.6 11.4h1" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>
+            Copy Page
+          </button>
+          <a class="docs-nav-btn" href="/docs/installing" aria-label="Previous: Installing">&larr;</a>
+          <a class="docs-nav-btn" href="/docs/harnesses" aria-label="Next: Harnesses">&rarr;</a>
+        </div>
+      </header>
       
-      <section class="docs-section docs-section-first">
+      
+      <section class="docs-section docs-section-first" id="put-each-profile-under-agents-slug">
         <p class="eyebrow">Layout</p>
         <h2>Put each profile under agents/&lt;slug&gt;/.</h2>
         <pre class="docs-code"><code>agents/
@@ -87,7 +109,7 @@
     references/
       runbook.md</code></pre>
       </section>
-      <section class="docs-section">
+      <section class="docs-section" id="minimal-profile-definition">
         <p class="eyebrow">YAML</p>
         <h2>Minimal profile definition.</h2>
         <pre class="docs-code"><code>id: triage-agent
@@ -98,7 +120,7 @@ instructions: |
   You are the triage-agent profile.
   Preserve stated priority order, call out blockers, and leave concise handoffs.</code></pre>
       </section>
-      <section class="docs-section">
+      <section class="docs-section" id="scripts-references-and-declared-skills-are-installed-into-the-profile-home">
         <p class="eyebrow">Support material</p>
         <h2>Scripts, references, and declared skills are installed into the profile home.</h2>
         <p>
@@ -108,9 +130,35 @@ instructions: |
         </p>
       </section>
     
+      <nav class="docs-pager-row" aria-label="Page navigation">
+        <a class="docs-pager prev" href="/docs/installing">
+          <span class="docs-pager-dir">Previous</span>
+          <span class="docs-pager-title">Installing</span>
+        </a>
+        <a class="docs-pager next" href="/docs/harnesses">
+          <span class="docs-pager-dir">Next</span>
+          <span class="docs-pager-title">Harnesses</span>
+        </a>
+      </nav>
     </article>
-  </div>
-</main>
+  </main>
+
+  <aside class="docs-onthis" aria-label="On this page">
+    <div class="docs-onthis-inner">
+      <p class="docs-onthis-label">On this page</p>
+      <nav aria-label="On this page">
+        <a href="#put-each-profile-under-agents-slug">Put each profile under agents/&lt;slug&gt;/</a>
+        <a href="#minimal-profile-definition">Minimal profile definition</a>
+        <a href="#scripts-references-and-declared-skills-are-installed-into-the-profile-home">Scripts, references, and declared skills are installed into the profile home</a>
+      </nav>
+      <a class="docs-promo" href="/docs/quickstart">
+        <span class="docs-promo-title">New to profiles?</span>
+        <span class="docs-promo-text">Install, preview, and run your first agent in under a minute.</span>
+        <span class="docs-promo-cta">Start the quickstart &rarr;</span>
+      </a>
+    </div>
+  </aside>
+</div>
 
 <footer class="foot">
   <div class="wrap foot-inner">
