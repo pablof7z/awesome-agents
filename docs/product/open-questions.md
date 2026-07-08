@@ -18,9 +18,7 @@ These are unresolved product questions for `awesome-agents`.
 
 - Should public builder handles always begin as GitHub usernames, or should
   custom handles be supported from the start?
-- Should indexed agent pages require `agents/<slug>/README.md`, or should the
-  site generate a fallback model card from `agent.yaml`?
-- How should user reviews on agent model-card pages be moderated and verified?
+- What moderation or spam controls should be added after real review volume?
 
 ## Harness Support
 

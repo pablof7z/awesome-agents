@@ -4,6 +4,19 @@
 // `excerpt` is the shipped-work line shown on the proof pill for sampled agents.
 window.AGENTS = [
   {
+    slug: "chief-of-staff",
+    name: "Chief of Staff",
+    role: "Operator",
+    source: "pablof7z/touch-grass",
+    profilePath: "/pablof7z/touch-grass/chief-of-staff",
+    desc: "maintains the operating picture, tracks decisions, coordinates agents, and protects builder attention.",
+    installs: 820,
+    examples: 22,
+    excerpt: "Collapsed six open loops into two concrete asks, restored the project context, and routed the right follow-up to the right agent.",
+    activity: [3, 5, 8, 13, 21, 34, 55, 89],
+    tags: ["coordination", "ops", "fleet"],
+  },
+  {
     slug: "code-reviewer",
     name: "Code Reviewer",
     role: "Reviewer",
@@ -502,7 +515,7 @@ window.AGENT_CARDS = {
     notFor: [
       "Producing the design — it critiques, it doesn't mock up.",
       "Brand or visual identity direction.",
-      "Backend or logic review; it looks at the surface.",
+      "Backend or logic review; it reviews rendered UI.",
     ],
     reviews: [
       { by: "@ui-vera", when: "1 week ago", text: "Gives the hex code and the ratio, not 'maybe darker?'. Actionable every time." },

@@ -10,7 +10,7 @@ The source format is intentionally repo-neutral:
 agents/
   <profile>/
     agent.yaml
-    README.md
+    README.md  # optional site model-card body
     skills/
     scripts/
     references/
@@ -37,7 +37,8 @@ agents/<profile>/README.md
 
 This README is intended for the public model-card page on
 `awesome-agents.com/<handle>/<repo>/<profile>`. It complements the runtime
-profile definition; it should not be treated as the installable prompt.
+profile definition; it should not be treated as the installable prompt. It is
+not required for a valid source profile.
 
 Immediately relevant skills can be declared in the profile definition:
 
