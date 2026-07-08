@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#08090a" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#fbfbfa" media="(prefers-color-scheme: light)">
+<title>So, what is an agent, anyway? — awesome-agents</title>
+<meta name="description" content="The word “agent” gets stretched over everything. awesome-agents means one thing by it: a reusable specialist for a kind of work — not a prompt, not a throwaway worker.">
+<meta property="og:title" content="So, what is an agent, anyway?">
+<meta property="og:description" content="A skill is reusable know-how. An agent is a reusable specialist. Here's why that difference is the whole point.">
+<meta property="og:type" content="article">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/styles.css">
+<style>
+  /* ---- what-is-an-agent: marketing article, built on the shared design system ---- */
+  .mf { padding-bottom: 40px; }
+  .mf-hero { padding: clamp(60px, 9vw, 108px) 0 8px; max-width: 30ch; }
+  .mf-hero h1 {
+    margin: 20px 0 0; font-weight: 600;
+    font-size: clamp(2.5rem, 7vw, 4.4rem); line-height: 1.0; letter-spacing: -.045em;
+  }
+  .mf-hero h1 em { font-style: normal; color: var(--accent-text); }
+  .mf-lead { margin: 26px 0 0; max-width: 54ch; color: var(--muted); font-size: clamp(16px, 2vw, 19px); line-height: 1.62; }
+  .mf-lead b { color: var(--fg); font-weight: 500; }
+
+  .mf-section { padding: clamp(44px, 7vw, 76px) 0 0; }
+  .mf-h2 { margin: 0; font-weight: 600; font-size: clamp(1.55rem, 3.2vw, 2.15rem); letter-spacing: -.035em; line-height: 1.08; }
+  .mf-p { margin: 16px 0 0; max-width: 60ch; color: var(--muted); font-size: 16.5px; line-height: 1.66; }
+  .mf-p b { color: var(--fg); font-weight: 500; }
+
+  /* the core definition — two large statements */
+  .mf-define { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; margin-top: 34px;
+    background: var(--border); border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; }
+  .mf-define > div { background: var(--panel); padding: clamp(24px, 3vw, 34px); }
+  .mf-define .is-agent { background: color-mix(in srgb, var(--accent) 6%, var(--panel)); }
+  .mf-kicker { font-family: var(--font-mono); font-size: 11.5px; text-transform: uppercase; letter-spacing: .14em; color: var(--dim); }
+  .mf-define .is-agent .mf-kicker { color: var(--accent-text); }
+  .mf-define strong { display: block; margin-top: 12px; font-weight: 600; letter-spacing: -.02em;
+    font-size: clamp(1.15rem, 2.4vw, 1.6rem); line-height: 1.22; color: var(--fg); }
+  .mf-caption { margin: 18px 0 0; color: var(--dim); font-size: 14.5px; font-family: var(--font-mono); }
+
+  /* skills vs agents contrast columns */
+  .mf-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 34px; }
+  .mf-col { background: var(--panel); border: 1px solid var(--border); border-radius: var(--r); padding: clamp(22px, 2.6vw, 30px); }
+  .mf-col.is-agent { border-color: var(--border-accent); }
+  .mf-col h3 { margin: 0; font-size: 19px; font-weight: 600; letter-spacing: -.02em; }
+  .mf-col > p { margin: 10px 0 0; color: var(--muted); font-size: 14.5px; line-height: 1.6; }
+  .mf-list { list-style: none; margin: 20px 0 0; padding: 0; font-family: var(--font-mono); font-size: 13px; color: var(--muted); }
+  .mf-list li { position: relative; padding: 9px 0 9px 20px; border-top: 1px solid var(--border); }
+  .mf-list li::before { content: ""; position: absolute; left: 2px; top: 15px; width: 6px; height: 6px; border-radius: 2px; background: var(--dim); }
+  .mf-col.is-agent .mf-list li::before { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+  .mf-judge { margin-top: 20px; padding-top: 18px; border-top: 1px dashed var(--border-strong); font-size: 13.5px; color: var(--dim); line-height: 1.6; }
+  .mf-judge b { color: var(--muted); font-weight: 500; }
+  .mf-badge { display: inline-block; margin-top: 16px; font-family: var(--font-mono); font-size: 11.5px;
+    text-transform: uppercase; letter-spacing: .1em; color: var(--dim);
+    border: 1px solid var(--border); border-radius: 999px; padding: 4px 11px; }
+  .mf-col.is-agent .mf-badge { color: var(--accent-text); border-color: var(--border-accent); background: var(--accent-soft); }
+
+  /* big pull statement */
+  .mf-pull { margin: 0; font-weight: 600; letter-spacing: -.035em; line-height: 1.16;
+    font-size: clamp(1.7rem, 4.6vw, 2.9rem); max-width: 20ch; }
+  .mf-pull em { font-style: normal; color: var(--accent-text); }
+
+  /* definition / instance / run — reuses .steps-grid/.step, just adds a note */
+  .mf-note { margin: 18px 0 0; color: var(--dim); font-size: 14.5px; font-family: var(--font-mono); max-width: 60ch; }
+
+  /* closing CTA */
+  .mf-cta { margin-top: clamp(48px, 8vw, 84px); text-align: center;
+    border: 1px solid var(--border); border-radius: var(--r);
+    background: radial-gradient(120% 140% at 50% 0%, var(--accent-soft), transparent 60%), var(--panel);
+    padding: clamp(40px, 6vw, 64px) 24px; }
+  .mf-cta h2 { margin: 0 auto; max-width: 22ch; font-weight: 600; letter-spacing: -.035em; line-height: 1.1;
+    font-size: clamp(1.6rem, 3.6vw, 2.4rem); }
+  .mf-cta p { margin: 16px auto 0; max-width: 46ch; color: var(--muted); font-size: 16px; line-height: 1.6; }
+  .mf-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-top: 30px; }
+  .mf-btn { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 13.5px;
+    padding: 12px 20px; border-radius: var(--r-sm); border: 1px solid var(--border-accent);
+    background: var(--accent); color: var(--accent-fg); font-weight: 500; transition: transform .16s var(--ease), filter .16s; }
+  .mf-btn:hover { transform: translateY(-1px); filter: brightness(1.06); }
+  .mf-btn.ghost { background: transparent; color: var(--fg); border-color: var(--border-strong); }
+  .mf-btn.ghost:hover { border-color: var(--border-accent); }
+  .mf-btn svg { width: 15px; height: 15px; }
+
+  @media (max-width: 720px) {
+    .mf-define, .mf-cols { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body class="mf-page">
+<a class="skip" href="#mf-main">Skip to content</a>
+
+<header class="nav" id="nav">
+  <div class="nav-inner">
+    <a class="brand" href="/" aria-label="awesome-agents home">
+      <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <circle cx="10" cy="2" r="1.3" fill="currentColor"/>
+          <path d="M10 3.3v1.7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          <rect x="3" y="6" width="14" height="12" rx="4" stroke="currentColor" stroke-width="1.7"/>
+          <circle cx="7.6" cy="12.3" r="1.4" fill="currentColor"/>
+          <circle cx="12.4" cy="12.3" r="1.4" fill="currentColor"/>
+        </svg></span>
+      <span class="brand-name"><b>awesome</b><span class="slash">/</span>agents</span>
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="/#leaderboard">Agents</a>
+      <a href="/pablof7z">Profiles</a>
+      <a href="/docs">Docs</a>
+      <a href="/what-is-an-agent" aria-current="page">What is an agent?</a>
+      <a href="https://www.npmjs.com/package/awesome-agents" rel="noopener">npm</a>
+      <a href="https://github.com/pablof7z/awesome-agents" rel="noopener">GitHub</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle color theme">
+        <svg class="ico-sun" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="3.2" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8 .8v2M8 13.2v2M.8 8h2M13.2 8h2M2.9 2.9l1.4 1.4M11.7 11.7l1.4 1.4M13.1 2.9l-1.4 1.4M4.3 11.7l-1.4 1.4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        <svg class="ico-moon" viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 9.3A5.6 5.6 0 0 1 6.7 2.5a5.6 5.6 0 1 0 6.8 6.8Z" fill="currentColor"/></svg>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap mf" id="mf-main">
+
+  <section class="mf-hero">
+    <p class="eyebrow">The idea</p>
+    <h1>So, what is an agent, <em>anyway?</em></h1>
+    <p class="mf-lead">
+      The word gets stretched over everything — a prompt, a tool call, a workflow step, a
+      throwaway context window. <b>awesome-agents</b> uses it for one thing, and means it:
+      a reusable specialist for a kind of work.
+    </p>
+  </section>
+
+  <section class="mf-section reveal">
+    <div class="mf-define">
+      <div>
+        <span class="mf-kicker">Skill</span>
+        <strong>Reusable know-how for a task.</strong>
+      </div>
+      <div class="is-agent">
+        <span class="mf-kicker">Agent</span>
+        <strong>A reusable specialist for a kind of work.</strong>
+      </div>
+    </div>
+    <p class="mf-caption">A task and a body of work are not the same thing. That gap is the whole distinction.</p>
+  </section>
+
+  <section class="mf-section reveal">
+    <div class="mf-cols">
+      <div class="mf-col is-skill">
+        <h3>Skills are for repeatable tasks</h3>
+        <p>Useful when the job is bounded and the result can be checked. A good skill makes a task easy to do consistently.</p>
+        <ul class="mf-list">
+          <li>Deploy a Docker image</li>
+          <li>Extract tables from a PDF</li>
+          <li>Generate release notes from commits</li>
+          <li>Run accessibility checks</li>
+        </ul>
+        <p class="mf-judge"><b>You verify it:</b> did it run, did it parse, did the checks pass?</p>
+        <span class="mf-badge">Closest to procedures</span>
+      </div>
+      <div class="mf-col is-agent">
+        <h3>Agents are for judgment-heavy work</h3>
+        <p>Useful when the work depends on context, standards, and tradeoffs — on a particular way of approaching the problem.</p>
+        <ul class="mf-list">
+          <li>A launch editor that critiques positioning</li>
+          <li>A staff engineer reviewing a PR for the long term</li>
+          <li>A protocol reviewer hunting unsafe assumptions</li>
+          <li>An analyst separating signal from noise</li>
+        </ul>
+        <p class="mf-judge"><b>You evaluate it:</b> was it useful, did it notice the right risks, would you use it again?</p>
+        <span class="mf-badge">Closest to practitioners</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="mf-section reveal">
+    <p class="mf-pull">Some things can be <em>verified.</em> Others have to be <em>evaluated.</em></p>
+    <p class="mf-p">
+      For a skill, success is mechanical — the file converted, the tests passed, the format matched.
+      Two strong agents can look at the same pull request and disagree, because they optimize for
+      different things. That is not a bug; it is the point. An agent carries a working style: what it
+      pays attention to, what it worries about, what it treats as quality, and what it ignores.
+    </p>
+  </section>
+
+  <section class="mf-section reveal">
+    <p class="eyebrow">Not a throwaway worker</p>
+    <h2 class="mf-h2">The definition is the thing that lasts.</h2>
+    <p class="mf-p">Many systems spin up a short-lived worker for a single task. Useful — but that is a run, not the agent.</p>
+    <div class="steps-grid" style="margin-top:30px">
+      <article class="step">
+        <span class="step-n">01</span>
+        <h3>Definition</h3>
+        <p>The reusable specialist: role, behavior, boundaries, tools, examples. What you inspect, version, fork, and come to trust.</p>
+      </article>
+      <article class="step">
+        <span class="step-n">02</span>
+        <h3>Instance</h3>
+        <p>One installed copy of that specialist in your environment, wired into the harness you already use.</p>
+      </article>
+      <article class="step">
+        <span class="step-n">03</span>
+        <h3>Run</h3>
+        <p>One execution on one task. It does its work and disappears — nothing durable to inspect on its own.</p>
+      </article>
+    </div>
+    <p class="mf-note">Without a durable definition, every “agent” is just another temporary context window with a nicer name.</p>
+  </section>
+
+  <section class="mf-section reveal">
+    <p class="eyebrow">Not a rivalry</p>
+    <h2 class="mf-h2">Agents use skills.</h2>
+    <p class="mf-p">
+      They are not competing ideas. A good agent uses many skills. A release manager <b>uses</b> a
+      changelog-generating skill, then decides what users actually need to know. The skill performs
+      the task; the agent decides how that task fits the work.
+    </p>
+  </section>
+
+  <section class="mf-cta reveal">
+    <h2>A skill is reusable know-how. An agent is a reusable specialist.</h2>
+    <p>That is what this directory indexes — durable agent definitions you can inspect before you run, and compare before you rely on.</p>
+    <div class="mf-actions">
+      <a class="mf-btn" href="/#leaderboard">Browse the directory
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 8h8M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <a class="mf-btn ghost" href="/docs">Read the docs</a>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-inner">
+    <span class="brand small">
+      <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <circle cx="10" cy="2" r="1.3" fill="currentColor"/>
+          <path d="M10 3.3v1.7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          <rect x="3" y="6" width="14" height="12" rx="4" stroke="currentColor" stroke-width="1.7"/>
+          <circle cx="7.6" cy="12.3" r="1.4" fill="currentColor"/>
+          <circle cx="12.4" cy="12.3" r="1.4" fill="currentColor"/>
+        </svg></span>
+      <span class="brand-name"><b>awesome</b><span class="slash">/</span>agents</span>
+    </span>
+    <nav aria-label="Footer">
+      <a href="https://github.com/pablof7z/awesome-agents" rel="noopener">GitHub</a>
+      <a href="https://www.npmjs.com/package/awesome-agents" rel="noopener">npm</a>
+      <a href="/#leaderboard">Directory</a>
+    </nav>
+    <span class="foot-note">Command shape mirrors <code>npx&nbsp;skills</code>. The unit is an agent, not a skill.</span>
+  </div>
+</footer>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  "use strict";
+  var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var root = document.documentElement;
+
+  // theme (shared behavior)
+  var stored = null;
+  try { stored = localStorage.getItem("aa-theme"); } catch (e) {}
+  if (stored === "light" || stored === "dark") {
+    root.setAttribute("data-theme", stored);
+    root.classList.remove("dark", "light");
+    root.classList.add(stored);
+  }
+  var toggle = document.getElementById("theme-toggle");
+  if (toggle) toggle.addEventListener("click", function () {
+    var isDark = matchMedia("(prefers-color-scheme: dark)").matches;
+    var attr = root.getAttribute("data-theme");
+    var current = attr || (root.classList.contains("light") ? "light" : root.classList.contains("dark") ? "dark" : (isDark ? "dark" : "light"));
+    var next = current === "dark" ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    root.classList.remove("dark", "light");
+    root.classList.add(next);
+    try { localStorage.setItem("aa-theme", next); } catch (e) {}
+  });
+
+  // nav shadow on scroll
+  var nav = document.getElementById("nav");
+  if (nav) {
+    var onScroll = function () { nav.classList.toggle("scrolled", window.scrollY > 8); };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+  }
+
+  // reveal sections on scroll
+  var reveals = document.querySelectorAll(".reveal");
+  if ("IntersectionObserver" in window && !reduce) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) { en.target.classList.add("in"); io.unobserve(en.target); }
+      });
+    }, { threshold: 0.12 });
+    reveals.forEach(function (n) { io.observe(n); });
+  } else {
+    reveals.forEach(function (n) { n.classList.add("in"); });
+  }
+})();
+</script>
+</body>
+</html>
