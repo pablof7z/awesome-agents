@@ -9,7 +9,7 @@ These notes capture what `awesome-agents` is and why it exists.
 - Its command structure should mirror `npx skills`, but for agent profiles.
 - It should install profiles from any explicit source repository that follows
   the `agents/<slug>/agent.yaml` source layout.
-- Harness targets are Codex, Claude Code, OpenCode, and tenex-edge.
+- Harness targets are Codex, Claude Code, OpenCode, Goose, and tenex-edge.
 - The package should be published after the scaffold works.
 
 ## Product Boundary

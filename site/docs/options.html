@@ -106,7 +106,7 @@
       <h2 id="selecting-a-profile">Selecting a profile</h2>
 <ul><li><code>--agent &lt;slug&gt;</code> selects an agent profile, e.g. <code>--agent triage-agent</code>.</li><li><code>--profile &lt;slug&gt;</code> or <code>--skill &lt;slug&gt;</code> are explicit aliases. <code>--skill</code> is command-shape compatibility only; it does not mean the artifact is a skill.</li><li>Omit a selector in an interactive terminal to choose from a checkbox list; every profile is selected by default.</li></ul>
 <h2 id="selecting-harnesses">Selecting harnesses</h2>
-<ul><li><code>--harness codex|claude-code|opencode|tenex-edge|*</code> targets specific harnesses. Without it, the CLI detects harness CLIs on <code>PATH</code>.</li><li><code>--all</code> installs every profile to every supported harness.</li><li><code>--yes</code> accepts the detected profile and harness selections without opening selectors.</li></ul>
+<ul><li><code>--harness codex|claude-code|opencode|goose|tenex-edge|*</code> targets specific harnesses. Without it, the CLI detects harness CLIs on <code>PATH</code>.</li><li><code>--all</code> installs every profile to every supported harness.</li><li><code>--yes</code> accepts the detected profile and harness selections without opening selectors.</li></ul>
 <h2 id="scope">Scope</h2>
 <ul><li><code>--project</code> installs at project level where supported; <code>--global</code> installs at user level.</li><li>Codex and tenex-edge always install globally.</li></ul>
 <h2 id="preview-and-output">Preview and output</h2>

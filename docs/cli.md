@@ -19,7 +19,9 @@ all detected selections without prompting. Installs default to project scope
 where the selected harness supports project-local profiles. Codex and tenex-edge
 are exceptions: Codex `--profile` loads named config layers from `CODEX_HOME`,
 while tenex-edge agents live in its machine keystore under
-`$TENEX_EDGE_HOME/agents/` or `~/.tenex-edge/agents/`.
+`$TENEX_EDGE_HOME/agents/` or `~/.tenex-edge/agents/`. Goose uses
+`~/.agents/agents/<profile>.md` (global) or `.agents/agents/<profile>.md`
+(project).
 
 ## Source Resolution
 
@@ -57,11 +59,11 @@ npx awesome-agents add owner/repo --agent triage-agent --harness opencode
 ```
 
 For backward compatibility, `--agent codex`, `--agent claude-code`,
-`--agent opencode`, and `--agent tenex-edge` are still accepted as harness
+`--agent opencode`, `--agent goose`, and `--agent tenex-edge` are still accepted as harness
 selectors.
 
 When no harness selector is provided, `add` detects `codex`, `claude`,
-`opencode`, and `tenex-edge` on `PATH`. If none are found, the command fails and
+`opencode`, `goose`, and `tenex-edge` on `PATH`. If none are found, the command fails and
 asks for `--harness`.
 
 When no profile selector is provided in an interactive terminal, `add` prompts
@@ -83,8 +85,11 @@ installed profile through any matching harness CLI found on `PATH`. Examples:
 ```bash
 codex --profile triage-agent
 claude --agent triage-agent
+goose session
 tenex-edge launch triage-agent
 ```
+
+For Goose, start `goose session` and invoke the agent by name with `@<profile>`.
 
 ## Install Safety
 

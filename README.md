@@ -7,7 +7,7 @@ agent profile instead of a skill.
 Supported sources are GitHub repos, Git URLs, or local checkouts that use the
 agent-profile source layout. Profiles are read from YAML or Markdown files under
 `agents/<slug>/`, adapted for the selected harness, and installed into the
-right place for Codex, Claude Code, OpenCode, or tenex-edge.
+right place for Codex, Claude Code, OpenCode, Goose, or tenex-edge.
 
 ## Install And Run
 
@@ -46,7 +46,7 @@ Useful install options:
 - omit a profile selector in an interactive terminal to choose source profiles
   from a checkbox list; every profile is selected by default
 - `--yes` to accept detected profile and harness selections without opening selectors
-- `--harness codex|claude-code|opencode|tenex-edge|*` to select target harnesses;
+- `--harness codex|claude-code|opencode|goose|tenex-edge|*` to select target harnesses;
   without it, the CLI detects harness CLIs on `PATH`; interactive multi-detect
   opens a checkbox selector with every detected harness selected, and
   noninteractive installs use every detected harness. If none are detected, pass
@@ -60,8 +60,8 @@ Useful install options:
 Human-readable output uses subtle ANSI color. Set `NO_COLOR=1` to disable color,
 or pass `--json` for machine-readable output. After an install, the CLI groups
 run commands by profile for target harness CLIs it finds on `PATH`, such as
-`codex --profile <profile>`, `claude --agent <profile>`, or
-`tenex-edge launch <profile>`.
+`codex --profile <profile>`, `claude --agent <profile>`,
+`tenex-edge launch <profile>`, or `goose session` then `@<profile>`.
 
 ## Harness Targets
 
@@ -70,6 +70,7 @@ Project installs write to:
 - Codex: not supported; Codex profiles load from user config
 - Claude Code: `.claude/agents/<profile>.md`
 - OpenCode: `.opencode/agents/<profile>.md`
+- Goose: `.agents/agents/<profile>.md`
 - tenex-edge: not supported; tenex-edge agents are machine-local
 
 Global installs write to:
@@ -77,6 +78,7 @@ Global installs write to:
 - Codex: `$CODEX_HOME/<profile>.config.toml`, or `~/.codex/<profile>.config.toml`
 - Claude Code: `$CLAUDE_HOME/agents/<profile>.md`, or `~/.claude/agents/<profile>.md`
 - OpenCode: `$OPENCODE_CONFIG_DIR/agents/<profile>.md`, or `~/.config/opencode/agents/<profile>.md`
+- Goose: `$GOOSE_HOME/agents/<profile>.md`, or `~/.agents/agents/<profile>.md`
 - tenex-edge: `$TENEX_EDGE_HOME/agents/<profile>.json`, or `~/.tenex-edge/agents/<profile>.json`
 
 The CLI keeps its own registry at `.awesome-agents/installed.json` for project

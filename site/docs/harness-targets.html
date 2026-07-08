@@ -105,16 +105,17 @@
 
       <h2 id="project-installs">Project installs</h2>
 <p>Project-level installs write into the current repo:</p>
-<div class="doc-table-wrap"><table class="doc-table"><thead><tr><th>Harness</th><th>Path</th></tr></thead><tbody><tr><td><code>claude-code</code></td><td><code>.claude/agents/&lt;profile&gt;.md</code></td></tr><tr><td><code>opencode</code></td><td><code>.opencode/agents/&lt;profile&gt;.md</code></td></tr><tr><td><code>codex</code></td><td>Not supported; loads from user config.</td></tr><tr><td><code>tenex-edge</code></td><td>Not supported; agents are machine-local.</td></tr></tbody></table></div>
+<div class="doc-table-wrap"><table class="doc-table"><thead><tr><th>Harness</th><th>Path</th></tr></thead><tbody><tr><td><code>claude-code</code></td><td><code>.claude/agents/&lt;profile&gt;.md</code></td></tr><tr><td><code>opencode</code></td><td><code>.opencode/agents/&lt;profile&gt;.md</code></td></tr><tr><td><code>goose</code></td><td><code>.agents/agents/&lt;profile&gt;.md</code></td></tr><tr><td><code>codex</code></td><td>Not supported; loads from user config.</td></tr><tr><td><code>tenex-edge</code></td><td>Not supported; agents are machine-local.</td></tr></tbody></table></div>
 <h2 id="global-installs">Global installs</h2>
-<div class="doc-table-wrap"><table class="doc-table"><thead><tr><th>Harness</th><th>Path</th></tr></thead><tbody><tr><td><code>codex</code></td><td><code>$CODEX_HOME/&lt;profile&gt;.config.toml</code></td></tr><tr><td><code>claude-code</code></td><td><code>$CLAUDE_HOME/agents/&lt;profile&gt;.md</code></td></tr><tr><td><code>opencode</code></td><td><code>$OPENCODE_CONFIG_DIR/agents/&lt;profile&gt;.md</code></td></tr><tr><td><code>tenex-edge</code></td><td><code>$TENEX_EDGE_HOME/agents/&lt;profile&gt;.json</code></td></tr></tbody></table></div>
-<p>Each falls back to a sensible home (<code>~/.codex</code>, <code>~/.claude</code>, <code>~/.config/opencode</code>, <code>~/.tenex-edge</code>) when the env var is unset.</p>
+<div class="doc-table-wrap"><table class="doc-table"><thead><tr><th>Harness</th><th>Path</th></tr></thead><tbody><tr><td><code>codex</code></td><td><code>$CODEX_HOME/&lt;profile&gt;.config.toml</code></td></tr><tr><td><code>claude-code</code></td><td><code>$CLAUDE_HOME/agents/&lt;profile&gt;.md</code></td></tr><tr><td><code>opencode</code></td><td><code>$OPENCODE_CONFIG_DIR/agents/&lt;profile&gt;.md</code></td></tr><tr><td><code>goose</code></td><td><code>$GOOSE_HOME/agents/&lt;profile&gt;.md</code></td></tr><tr><td><code>tenex-edge</code></td><td><code>$TENEX_EDGE_HOME/agents/&lt;profile&gt;.json</code></td></tr></tbody></table></div>
+<p>Each falls back to a sensible home (<code>~/.codex</code>, <code>~/.claude</code>, <code>~/.config/opencode</code>, <code>~/.agents</code>, <code>~/.tenex-edge</code>) when the env var is unset.</p>
 <h2 id="running-installed-profiles">Running installed profiles</h2>
 <p>After an install, the CLI prints the run command for each harness CLI it finds on <code>PATH</code>:</p>
 <div class="doc-code"><pre><code><span class="c-pmt">$ </span>codex --profile &lt;profile&gt;
 <span class="c-pmt">$ </span>claude --agent &lt;profile&gt;
+<span class="c-pmt">$ </span>goose session  # then @&lt;profile&gt;
 <span class="c-pmt">$ </span>tenex-edge launch &lt;profile&gt;</code></pre></div>
-<p>Codex expects a plain profile name, not a path passed to <code>--profile</code>.</p>
+<p>Codex expects a plain profile name, not a path passed to <code>--profile</code>. For Goose, start <code>goose session</code> and invoke the agent by name with <code>@&lt;profile&gt;</code>.</p>
 
       <nav class="doc-pager" aria-label="Pagination"><a class="prev" href="/docs/options"><span class="pg-label">← Previous</span><span class="pg-title">Install options</span></a><a class="next" href="/docs/source-format"><span class="pg-label">Next →</span><span class="pg-title">Source format</span></a></nav>
     </main>
