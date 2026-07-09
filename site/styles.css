@@ -1019,7 +1019,7 @@ a { color: inherit; text-decoration: none; }
   background:
     linear-gradient(115deg, transparent 0 18%, color-mix(in srgb, var(--fg) 8%, transparent) 18% 19%, transparent 19% 100%),
     radial-gradient(circle at 55% 28%, color-mix(in srgb, #42ffd2 18%, transparent), transparent 38%),
-    radial-gradient(circle at 82% 72%, color-mix(in srgb, #f2b84b 14%, transparent), transparent 42%);
+    radial-gradient(circle at 82% 72%, color-mix(in srgb, #ff5436 14%, transparent), transparent 42%);
   filter: blur(18px) saturate(120%);
   opacity: .65;
   pointer-events: none;
