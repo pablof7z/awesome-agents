@@ -28,10 +28,6 @@ async function main() {
   const nextVersion = resolveNextVersion(currentVersion, options.bump);
   const tag = `v${nextVersion}`;
 
-  if (!options.dryRun) {
-    assertCleanWorktree();
-  }
-
   console.log(`Release plan: ${currentVersion} -> ${nextVersion}`);
 
   if (options.dryRun) {

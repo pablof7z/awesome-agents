@@ -198,14 +198,10 @@
     var el = document.getElementById("roster-role");
     if (!el) return;
     var phrases = [
-      "a reviewer that catches bugs before merge",
-      "a protocol reviewer for Cashu mints",
-      "an accountant that reads financial PDFs",
-      "a UX critic for iOS flows",
-      "an incident commander for outages",
-      "a researcher that turns sources into briefs",
-      "a support triager that drafts the first reply",
-      "a release manager that cuts the tag",
+      "a chief of staff that keeps your projects in one picture",
+      "a tester that drives iOS apps on real simulators",
+      "a UX critic for iOS product flows",
+      "a planner that ships architecture PRs",
     ];
     el.textContent = phrases[0];
     if (reduce || phrases.length < 2) return;
