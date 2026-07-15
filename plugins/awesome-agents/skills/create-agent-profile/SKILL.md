@@ -1,13 +1,13 @@
 ---
 name: create-agent-profile
-description: Create, scaffold, or revise portable agent profiles in source repositories for installation with npx awesome-agents. Use when Codex needs to add an agents/SLUG/agent.yaml definition, attach agent-owned skills/scripts/references, convert an existing agent prompt into the canonical repository layout, or validate that a profile can be discovered and rendered for supported harnesses.
+description: Create, scaffold, or revise portable agent profiles in source repositories for awesome-agents. Use when Codex needs to add an agents/SLUG/agent.yaml definition, attach agent-owned skills/scripts/references, convert an existing agent prompt into the canonical repository layout, or validate that a profile can be discovered and rendered for supported harnesses.
 ---
 
 # Create an awesome-agents profile
 
-Create a repo-neutral operational agent profile that `npx awesome-agents` can
-discover, render, and install. Treat the profile as reusable product content,
-not as local harness configuration.
+Create a repo-neutral operational agent profile that awesome-agents can discover,
+render, and install. Treat the profile as reusable product content, not as local
+harness configuration.
 
 ## Ground the work
 
