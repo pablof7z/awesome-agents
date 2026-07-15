@@ -1,7 +1,6 @@
 # awesome-agents profile format
 
-Use this reference when creating or revising a source profile for
-`npx awesome-agents`.
+Use this reference when creating or revising an awesome-agents source profile.
 
 ## Canonical repository layout
 
