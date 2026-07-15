@@ -19,6 +19,7 @@ Requires Node.js on your `PATH` (the skills invoke `npx`).
 | Command | What it does |
 | --- | --- |
 | `/awesome-agents:browse [source]` | List the profiles a source offers |
+| `/awesome-agents:create-agent-profile [role]` | Create and validate a portable profile in the current source repo |
 | `/awesome-agents:install [source] [slug]` | Install a profile into `.claude/agents/` |
 | `/awesome-agents:installed` | Show what's installed (project or global) |
 | `/awesome-agents:update [slug…]` | Update profiles from their sources |
@@ -35,8 +36,10 @@ confirmation, or scaffolds a new profile source when nothing fits.
 
 ## How it works
 
-The plugin ships no logic of its own. Every skill runs the `awesome-agents` CLI
-with `--json` and installs into Claude Code's `.claude/agents/` (project) or
-`~/.claude/agents/` (global). Because the CLI already understands harness
-targets and keeps its own registry, `update` and `remove` stay consistent whether
-you invoke them from the plugin or from a terminal.
+The plugin ships no runtime logic of its own. Its skills run the
+`awesome-agents` CLI with `--json`: the creator writes the canonical
+`agents/<slug>/agent.yaml` source layout, while install commands render profiles
+into Claude Code's `.claude/agents/` (project) or `~/.claude/agents/` (global).
+Because the CLI already understands harness targets and keeps its own registry,
+`update` and `remove` stay consistent whether you invoke them from the plugin or
+from a terminal.
