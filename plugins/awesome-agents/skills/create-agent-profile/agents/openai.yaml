@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create Agent Profile"
+  short_description: "Create npx-compatible agent profiles"
+  default_prompt: "Use $create-agent-profile to add an awesome-agents profile to this repository."
