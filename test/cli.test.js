@@ -323,6 +323,10 @@ test("installs an Agent Format YAML profile as a profile, not a skill", async ()
   assert.match(content, /Installed identity: `ops-agent`/);
   assert.match(content, /Role\/name: `Ops Agent`/);
   assert.match(content, /operational agent profile, not a skill/);
+  const agentHome = path.join(home, ".agents", "homes", "ops-agent");
+  assert.match(content, new RegExp(escapeRegExp(`Agent home: \`${agentHome}\``)));
+  assert.match(content, new RegExp(escapeRegExp(`- \`references\`: \`${path.join(agentHome, "references")}\``)));
+  assert.match(content, new RegExp(escapeRegExp(`- \`scripts\`: \`${path.join(agentHome, "scripts")}\``)));
   assert.match(content, /You are an ops agent/);
   assert.doesNotMatch(content, /primary_skill/);
   assert.doesNotMatch(content, /skills\//);
@@ -331,6 +335,11 @@ test("installs an Agent Format YAML profile as a profile, not a skill", async ()
   assert.equal(existsSync(path.join(home, ".agents", "homes", "ops-agent", "references", "runbook.md")), true);
 
   const parsed = JSON.parse(result.stdout);
+  assert.equal(parsed.operations[0].agentHome, agentHome);
+  assert.deepEqual(parsed.operations[0].supportRoots, [
+    { kind: "references", path: path.join(agentHome, "references") },
+    { kind: "scripts", path: path.join(agentHome, "scripts") }
+  ]);
   assert.deepEqual(
     parsed.operations[0].supportTargets.map((targetPath) => path.relative(home, targetPath)).sort(),
     [
@@ -338,6 +347,39 @@ test("installs an Agent Format YAML profile as a profile, not a skill", async ()
       ".agents/homes/ops-agent/scripts/heartbeat.sh"
     ]
   );
+});
+
+test("exposes agent-owned support paths in every installed harness profile", async () => {
+  const harnesses = ["codex", "claude-code", "opencode", "goose", "tenex-edge"];
+  const agentHome = path.join(home, ".agents", "homes", "ops-agent");
+  const references = path.join(agentHome, "references");
+  const scripts = path.join(agentHome, "scripts");
+
+  for (const harness of harnesses) {
+    const result = runCli([
+      "add",
+      fixture,
+      "--agent",
+      "ops-agent",
+      "--harness",
+      harness,
+      "--global",
+      "--home",
+      home,
+      "--json"
+    ]);
+    assert.equal(result.status, 0, `${harness}: ${result.stderr}`);
+
+    const [operation] = JSON.parse(result.stdout).operations;
+    const installed = await fs.readFile(operation.target, "utf8");
+    const prompt = harness === "tenex-edge"
+      ? JSON.parse(installed).agent.prompt
+      : installed;
+
+    assert.match(prompt, new RegExp(escapeRegExp(`Agent home: \`${agentHome}\``)), harness);
+    assert.match(prompt, new RegExp(escapeRegExp(`- \`references\`: \`${references}\``)), harness);
+    assert.match(prompt, new RegExp(escapeRegExp(`- \`scripts\`: \`${scripts}\``)), harness);
+  }
 });
 
 test("installs a GitHub shorthand source with --agent as the profile selector", async () => {

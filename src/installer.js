@@ -36,10 +36,17 @@ export async function installFromSource(sourceSpec, options = {}) {
     const installedAt = new Date().toISOString();
 
     for (const profile of profiles) {
+      const agentHome = resolveAgentHome(profile, options);
       const supportTargets = await installProfileSupport(profile, options);
+      const supportRoots = (profile.supportDirs ?? []).map((supportDir) => ({
+        kind: supportDir.kind,
+        path: path.join(agentHome, supportDir.kind)
+      }));
       const installedSkills = await installProfileSkills(profile, materialized.path, options);
       const renderProfile = {
         ...profile,
+        agentHome,
+        supportRoots,
         installedSkills
       };
       for (const harness of harnesses) {
@@ -63,6 +70,8 @@ export async function installFromSource(sourceSpec, options = {}) {
           target,
           installedAt,
           contentSha256: contentHash(content),
+          agentHome,
+          supportRoots,
           supportTargets,
           skillTargets: installedSkills.map((skill) => skill.path),
           installedSkills,
@@ -253,8 +262,7 @@ async function installProfileSupport(profile, options = {}) {
     return [];
   }
 
-  const home = path.resolve(expandHome(options.home ?? os.homedir()));
-  const agentHome = path.join(home, ".agents", "homes", profile.slug);
+  const agentHome = resolveAgentHome(profile, options);
   const targets = [];
 
   for (const supportDir of profile.supportDirs) {
@@ -271,6 +279,11 @@ async function installProfileSupport(profile, options = {}) {
   }
 
   return targets;
+}
+
+function resolveAgentHome(profile, options = {}) {
+  const home = path.resolve(expandHome(options.home ?? os.homedir()));
+  return path.join(home, ".agents", "homes", profile.slug);
 }
 
 async function listFilesRecursive(root) {

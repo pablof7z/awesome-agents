@@ -72,6 +72,9 @@ Agent-owned scripts and references should be installed into
 `~/.agents/homes/<profile>/references`.
 Declared skills should be installed into
 `~/.agents/homes/<profile>/skills/<skill>`.
+Installed harness profiles receive the exact agent-home, references, and scripts
+paths in their operating context. Source instructions should refer to these resources
+by relative path instead of embedding a harness-specific or checkout-specific path.
 
 Profile source files are intentionally under `agents/`, not `skills/`, because
 the source format models agent profiles separately from loadable skills.
