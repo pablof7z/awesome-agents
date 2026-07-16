@@ -290,8 +290,23 @@ function buildInstructionBody(profile, adapter, harness) {
     `- Installed for: \`${harness}\``,
     "- When asked who you are, what agent is running, or what role you are acting as, answer with this identity and role.",
     "- This profile is a reusable operational agent profile, not a skill or local machine setup.",
-    "- The runtime agent manages any profile-specific home directory and notes at task time."
+    profile.agentHome
+      ? `- Agent home: \`${profile.agentHome}\``
+      : "- This render-only output does not install an agent home or support material."
   ];
+
+  if (profile.supportRoots?.length) {
+    parts.push(
+      "",
+      "## Agent-Owned Support",
+      "",
+      "Use these installed resources when the operating procedure calls for them. Resolve relative support paths against these roots.",
+      ""
+    );
+    for (const support of profile.supportRoots) {
+      parts.push(`- \`${support.kind}\`: \`${support.path}\``);
+    }
+  }
 
   if (profile.installedSkills?.length) {
     const skillBase = path.join(path.dirname(profile.installedSkills[0].path), "<skill>");

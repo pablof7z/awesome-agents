@@ -86,6 +86,11 @@ installs or `~/.awesome-agents/installed.json` for global installs. `list`,
 `remove`, and `update` use this registry and refuse to overwrite or delete files
 that do not contain the generated marker unless `--force` is passed.
 
+Agent-owned references and scripts are installed under
+`~/.agents/homes/<profile>/`. Every installed harness profile receives the exact
+agent-home and support-root paths in its operating context, so profile instructions
+can refer to bundled resources by relative path without becoming harness-specific.
+
 Run Codex profiles with:
 
 ```bash
