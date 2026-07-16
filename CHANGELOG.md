@@ -2,6 +2,23 @@
 
 This file is maintained by `npm run changelog` and `npm run release`. Release entries are generated from git commit history.
 
+## 0.1.9 - 2026-07-16
+
+Changes since `v0.1.8`.
+
+### Added
+
+- Add create-agent-profile skill (f5dcfe0)
+
+### Changed
+
+- Expose agent-owned support to installed profiles (#12) (832094e)
+- Name awesome-agents profiles directly (9640910)
+- Remove agents nav link (3ad6bb3)
+- Restore coral site accent (ba2ec5c)
+- Refresh site agent directory (2268134)
+- Make skill dependency resolution fault-tolerant instead of fatal (78aea64)
+
 ## 0.1.8 - 2026-07-08
 
 Changes since `v0.1.6`.
