@@ -45,7 +45,7 @@ Immediately relevant skills can be declared in the profile definition:
 ```yaml
 skills:
   - gh-pages-publisher
-  - pablof7z/tenex-edge basic-skill
+  - owner/agent-skills release-checklist
 ```
 
 Bare skill names resolve from the profile directory, then the source checkout,

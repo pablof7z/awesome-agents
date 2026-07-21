@@ -36,7 +36,6 @@ Changes since `v0.1.6`.
 
 - Prepare 0.1.7 release (342e93d)
 - Link hosted artifacts for public-builder-profiles-agent-model-cards (0f76238)
-- Update tenex-edge launch commands (cc304e2)
 
 ### Documentation
 
@@ -49,10 +48,6 @@ Changes since `v0.1.6`.
 ### Added
 
 - Add generated docs site (8eb21ba)
-
-### Changed
-
-- Update tenex-edge launch commands (cc304e2)
 
 ## 0.1.6 - 2026-07-06
 

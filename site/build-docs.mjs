@@ -34,7 +34,7 @@ const pages = [
     title: "Docs",
     eyebrow: "Docs",
     h1: "Use awesome-agents without leaving the site.",
-    description: "Install reusable operational agent profiles, author your own source repositories, and target Codex, Claude Code, OpenCode, Goose, or tenex-edge.",
+    description: "Install reusable operational agent profiles, author your own source repositories, and target Codex, Claude Code, OpenCode, or Goose.",
     body: `
       <section class="docs-section docs-section-first">
         <p class="eyebrow">Start here</p>
@@ -110,11 +110,11 @@ const pages = [
           </div>
           <div>
             <dt>Harness target</dt>
-            <dd>The destination renderer for Codex, Claude Code, OpenCode, Goose, or tenex-edge.</dd>
+            <dd>The destination renderer for Codex, Claude Code, OpenCode, or Goose.</dd>
           </div>
           <div>
             <dt>Install scope</dt>
-            <dd>Project-local where supported. Codex and tenex-edge install globally because those harnesses load user-level profiles.</dd>
+            <dd>Project-local where supported. Codex installs globally because it loads user-level profiles.</dd>
           </div>
         </dl>
       </section>
@@ -222,7 +222,7 @@ const pages = [
     title: "Harness Targets",
     eyebrow: "Harnesses",
     h1: "Each harness gets its native generated artifact.",
-    description: "Codex, Claude Code, OpenCode, Goose, and tenex-edge expect different profile file locations and run flows.",
+    description: "Codex, Claude Code, OpenCode, and Goose expect different profile file locations and run flows.",
     body: `
       <section class="docs-section docs-section-first">
         <p class="eyebrow">Matrix</p>
@@ -237,7 +237,6 @@ const pages = [
               <tr><td>Claude Code</td><td><code>.claude/agents/&lt;profile&gt;.md</code></td><td><code>$CLAUDE_HOME/agents/&lt;profile&gt;.md</code></td><td><code>claude --agent &lt;profile&gt;</code></td></tr>
               <tr><td>OpenCode</td><td><code>.opencode/agents/&lt;profile&gt;.md</code></td><td><code>$OPENCODE_CONFIG_DIR/agents/&lt;profile&gt;.md</code></td><td><code>opencode</code>, then invoke <code>@&lt;profile&gt;</code></td></tr>
               <tr><td>Goose</td><td><code>.agents/agents/&lt;profile&gt;.md</code></td><td><code>$GOOSE_HOME/agents/&lt;profile&gt;.md</code></td><td><code>goose session</code>, then invoke <code>@&lt;profile&gt;</code></td></tr>
-              <tr><td>tenex-edge</td><td>Not supported</td><td><code>$TENEX_EDGE_HOME/agents/&lt;profile&gt;.json</code></td><td><code>tenex-edge launch &lt;profile&gt;</code></td></tr>
             </tbody>
           </table>
         </div>
@@ -303,7 +302,6 @@ const pages = [
           <div><code>CLAUDE_HOME</code><span>Claude Code user agent directory root. Defaults to <code>~/.claude</code>.</span></div>
           <div><code>OPENCODE_CONFIG_DIR</code><span>OpenCode config directory. Defaults to <code>~/.config/opencode</code>.</span></div>
           <div><code>GOOSE_HOME</code><span>Goose agent directory root. Defaults to <code>~/.agents</code>.</span></div>
-          <div><code>TENEX_EDGE_HOME</code><span>tenex-edge local agent directory root. Defaults to <code>~/.tenex-edge</code>.</span></div>
           <div><code>NO_COLOR=1</code><span>Disable ANSI color in human-readable output.</span></div>
         </div>
       </section>
@@ -328,7 +326,7 @@ const pages = [
         <dl class="docs-dl">
           <div>
             <dt>No harness detected</dt>
-            <dd>Pass <code>--harness codex</code>, <code>--harness claude-code</code>, <code>--harness opencode</code>, <code>--harness goose</code>, or <code>--harness tenex-edge</code>.</dd>
+            <dd>Pass <code>--harness codex</code>, <code>--harness claude-code</code>, <code>--harness opencode</code>, or <code>--harness goose</code>.</dd>
           </div>
           <div>
             <dt>Profile not found</dt>

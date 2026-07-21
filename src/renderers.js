@@ -44,9 +44,6 @@ export function renderForAgent(profile, agent, context) {
   if (normalized === "goose") {
     return renderGoose(profile, context);
   }
-  if (normalized === "tenex-edge") {
-    return renderTenexEdge(profile, context);
-  }
   throw new Error(`Unsupported agent "${agent}"`);
 }
 
@@ -102,15 +99,6 @@ export function resolveTargetPath(profile, agent, options = {}) {
         ? path.resolve(expandHome(process.env.GOOSE_HOME, home))
         : path.join(home, ".agents");
     return path.join(gooseHome, "agents", `${profile.slug}.md`);
-  }
-
-  if (normalized === "tenex-edge") {
-    const tenexEdgeHome = options.tenexEdgeHome
-      ? path.resolve(expandHome(options.tenexEdgeHome, home))
-      : process.env.TENEX_EDGE_HOME
-        ? path.resolve(expandHome(process.env.TENEX_EDGE_HOME, home))
-        : path.join(home, ".tenex-edge");
-    return path.join(tenexEdgeHome, "agents", `${profile.slug}.json`);
   }
 
   throw new Error(`Unsupported agent "${agent}"`);
@@ -199,84 +187,6 @@ function renderGoose(profile, context) {
 
   const marker = htmlMarker(profile, "goose", context);
   return stringifyFrontmatter(attributes, `${marker}\n\n${buildInstructionBody(profile, profile.adapters.goose ?? profile.adapters["claude-code"], "goose")}`);
-}
-
-function renderTenexEdge(profile, context) {
-  const existing = tenexEdgeKeyMaterial(context.existingContent);
-  const keyMaterial = existing ?? generateNostrKeypair();
-  const commands = tenexEdgeCommands(profile, context);
-  const agent = tenexEdgeInlineAgent(profile);
-
-  const stored = {
-    slug: profile.slug,
-    secret_key: keyMaterial.secret_key,
-    public_key: keyMaterial.public_key,
-    created_at: keyMaterial.created_at ?? Math.floor(Date.now() / 1000),
-    commands,
-    byline: profile.summary || profile.name,
-    managed_by: GENERATED_MARKER,
-    source: context.source
-  };
-
-  if (hasInlineClaudeCommand(commands)) {
-    stored.agent = agent;
-  }
-
-  return `${JSON.stringify(stored, null, 2)}\n`;
-}
-
-function tenexEdgeInlineAgent(profile) {
-  const agent = {
-    description: profile.summary || profile.name,
-    prompt: buildInstructionBody(profile, profile.adapters["tenex-edge"] ?? profile.adapters["claude-code"], "tenex-edge")
-  };
-  const model = chooseClaudeModel(profile);
-  const effort = profile.attributes.recommended_reasoning_effort;
-
-  if (model && model !== "inherit") {
-    agent.model = model;
-  }
-  if (effort && effort !== "inherit" && ["low", "medium", "high", "xhigh", "max"].includes(effort)) {
-    agent.effort = effort;
-  }
-
-  return agent;
-}
-
-function tenexEdgeCommands(profile, context) {
-  const commands = [];
-  for (const harness of arrayify(context.selectedHarnesses)) {
-    if (harness === "codex") {
-      commands.push({
-        name: "codex",
-        argv: ["codex", "--profile", profile.slug]
-      });
-    } else if (harness === "claude-code") {
-      commands.push({
-        name: "claude",
-        argv: ["claude", "--agent", profile.slug]
-      });
-    }
-  }
-
-  // Keep tenex-edge-only installs self-contained. tenex-edge expands this with
-  // the inline `agent` definition as `claude --agents ... --agent <slug>`.
-  if (!commands.some((command) => command.name === "claude")) {
-    commands.push({
-      name: "claude",
-      argv: ["claude"]
-    });
-  }
-
-  return uniqueBy(commands, (command) => command.name);
-}
-
-function hasInlineClaudeCommand(commands) {
-  return commands.some((command) => (
-    command.name === "claude" &&
-    command.argv.length === 1 &&
-    command.argv[0] === "claude"
-  ));
 }
 
 function buildInstructionBody(profile, adapter, harness) {
@@ -389,57 +299,6 @@ function chooseGooseModel(profile) {
   return undefined;
 }
 
-function tenexEdgeKeyMaterial(content) {
-  if (!content) {
-    return undefined;
-  }
-
-  let parsed;
-  try {
-    parsed = JSON.parse(content);
-  } catch {
-    return undefined;
-  }
-
-  if (!isHex64(parsed.secret_key)) {
-    return undefined;
-  }
-
-  const derived = derivePublicKey(parsed.secret_key);
-  if (!derived) {
-    return undefined;
-  }
-
-  return {
-    secret_key: parsed.secret_key,
-    public_key: isHex64(parsed.public_key) ? parsed.public_key : derived,
-    created_at: Number.isInteger(parsed.created_at) ? parsed.created_at : undefined
-  };
-}
-
-function generateNostrKeypair() {
-  const ecdh = crypto.createECDH("secp256k1");
-  const publicKey = ecdh.generateKeys(undefined, "uncompressed");
-  return {
-    secret_key: ecdh.getPrivateKey("hex"),
-    public_key: publicKey.subarray(1, 33).toString("hex")
-  };
-}
-
-function derivePublicKey(secretKey) {
-  try {
-    const ecdh = crypto.createECDH("secp256k1");
-    ecdh.setPrivateKey(Buffer.from(secretKey, "hex"));
-    return ecdh.getPublicKey(undefined, "uncompressed").subarray(1, 33).toString("hex");
-  } catch {
-    return undefined;
-  }
-}
-
-function isHex64(value) {
-  return typeof value === "string" && /^[0-9a-fA-F]{64}$/.test(value);
-}
-
 function tomlString(value) {
   return JSON.stringify(String(value));
 }
@@ -468,20 +327,6 @@ function arrayify(value) {
     return [];
   }
   return [value];
-}
-
-function uniqueBy(values, keyForValue) {
-  const seen = new Set();
-  const out = [];
-  for (const value of values) {
-    const key = keyForValue(value);
-    if (seen.has(key)) {
-      continue;
-    }
-    seen.add(key);
-    out.push(value);
-  }
-  return out;
 }
 
 function flattenValues(values) {
