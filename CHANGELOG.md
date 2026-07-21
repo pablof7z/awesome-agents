@@ -2,6 +2,14 @@
 
 This file is maintained by `npm run changelog` and `npm run release`. Release entries are generated from git commit history.
 
+## 0.1.10 - 2026-07-21
+
+Changes since `v0.1.9`.
+
+### Changed
+
+- Remove retired harness support (63915b1)
+
 ## 0.1.9 - 2026-07-16
 
 Changes since `v0.1.8`.
