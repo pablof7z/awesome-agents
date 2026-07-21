@@ -10,7 +10,6 @@ Initial harness targets:
 - Claude Code
 - OpenCode
 - Goose
-- tenex-edge
 
 ## Codex
 
@@ -78,32 +77,9 @@ Goose output is Markdown with YAML frontmatter (`name`, `description`, optional
 `model`) and a generated marker. The agent body reuses the Claude Code adapter
 when a Goose-specific adapter is not present.
 
-## tenex-edge
-
-Generated tenex-edge agents install to:
-
-- Project: not supported; tenex-edge agents are machine-local
-- Global: `$TENEX_EDGE_HOME/agents/<profile>.json`, or `~/.tenex-edge/agents/<profile>.json`
-
-Run with:
-
-```bash
-tenex-edge launch <profile>
-```
-
-The generated JSON is a tenex-edge local agent keystore entry with:
-
-- a generated Nostr keypair, preserved across reinstalls
-- `commands` entries with launch argv that load the installed profile, such as
-  `codex --profile <profile>` or `claude --agent <profile>`
-- an inline Claude `agent` definition passed by tenex-edge as `--agents` for
-  the generated fallback command when no Claude Code profile command is present
-- a byline derived from the profile summary
-
 ## Adapter Gaps
 
 Some source repositories may provide Codex adapters first. Claude Code and
 OpenCode use generated defaults unless a source repository adds native adapters
 for those harnesses. Goose reuses the Claude Code adapter when no Goose-specific
-adapter is present. tenex-edge uses a native adapter when present, otherwise it
-reuses the Claude Code adapter before falling back to the base profile.
+adapter is present.

@@ -382,20 +382,6 @@ function runInstructionForOperation(operation, env) {
     };
   }
 
-  if (operation.harness === "tenex-edge") {
-    if (!commandExists("tenex-edge", env)) {
-      return undefined;
-    }
-    return {
-      profile: operation.profile,
-      name: operation.name,
-      summary: operation.summary,
-      harness: operation.harness,
-      command: `tenex-edge launch ${shellWord(operation.profile)}`,
-      note: "Starts this profile as a tenex-edge-managed Claude Code agent."
-    };
-  }
-
   return undefined;
 }
 
@@ -526,16 +512,13 @@ function resolveScope(options = {}, harnesses = []) {
   if (options.project && harnesses.includes("codex")) {
     throw new Error("Codex profiles are loaded from $CODEX_HOME/<name>.config.toml and cannot be installed project-locally. Use --global or choose a different harness.");
   }
-  if (options.project && harnesses.includes("tenex-edge")) {
-    throw new Error("tenex-edge agents are machine-local under $TENEX_EDGE_HOME/agents or ~/.tenex-edge/agents and cannot be installed project-locally. Use --global or choose a different harness.");
-  }
   if (options.global) {
     return "global";
   }
   if (options.project) {
     return "project";
   }
-  if (harnesses.includes("codex") || harnesses.includes("tenex-edge")) {
+  if (harnesses.includes("codex")) {
     return "global";
   }
   return "project";

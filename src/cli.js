@@ -17,7 +17,7 @@ export async function run(argv = process.argv) {
   const program = new Command();
   program
     .name(PACKAGE_NAME)
-    .description("Install reusable agent profiles into Codex, Claude Code, OpenCode, Goose, and tenex-edge.")
+    .description("Install reusable agent profiles into Codex, Claude Code, OpenCode, and Goose.")
     .version(PACKAGE_VERSION, "-v, --version")
     .helpOption("-h, --help", "Show this help message")
     .showHelpAfterError();
@@ -142,7 +142,7 @@ function addInstallCommand(program, commandName) {
     .argument("[source]", "Local path, GitHub owner/repo, or GitHub URL")
     .description(commandName === "install" ? "Alias for add" : "Install agent profiles from a source")
     .option("-g, --global", "Install globally")
-    .option("-p, --project", "Install into the current project; not supported for Codex or tenex-edge profiles")
+    .option("-p, --project", "Install into the current project; not supported for Codex profiles")
     .option("-a, --agent <agents...>", "Agent profile slugs to install; accepts harness names for backward compatibility")
     .option("--harness <harnesses...>", `Target harnesses (${SUPPORTED_AGENTS.join(", ")}, or *)`)
     .option("--target <harnesses...>", "Compatibility alias for --harness")

@@ -7,11 +7,11 @@ window.BUILDERS = {
     heroImage: "https://picsum.photos/seed/agent-fleet-console/1920/1080",
     inlineImage: "https://picsum.photos/seed/operator-desk/640/360",
     headline: "Pablo runs agent fleets like product infrastructure.",
-    bio: "Builds agent workflows across Codex, Claude Code, OpenCode, Goose, tenex-edge, and GitHub.",
+    bio: "Builds agent workflows across Codex, Claude Code, OpenCode, Goose, and GitHub.",
     location: "Internet / projects / agent rooms",
     website: "awesome-agents.com",
     joined: "Joined July 2026",
-    stack: ["Codex", "Claude Code", "OpenCode", "Goose", "tenex-edge", "GitHub"],
+    stack: ["Codex", "Claude Code", "OpenCode", "Goose", "GitHub"],
     intro: "Repos, agent templates, artifacts, reviews, and handoffs from a working agent setup.",
     kpis: [
       { value: "32", label: "agent templates", detail: "Profiles published or maintained" },
