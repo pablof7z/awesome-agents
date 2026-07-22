@@ -44,6 +44,9 @@ export function renderForAgent(profile, agent, context) {
   if (normalized === "goose") {
     return renderGoose(profile, context);
   }
+  if (normalized === "hermes") {
+    return renderHermes(profile, context);
+  }
   throw new Error(`Unsupported agent "${agent}"`);
 }
 
@@ -99,6 +102,16 @@ export function resolveTargetPath(profile, agent, options = {}) {
         ? path.resolve(expandHome(process.env.GOOSE_HOME, home))
         : path.join(home, ".agents");
     return path.join(gooseHome, "agents", `${profile.slug}.md`);
+  }
+
+  if (normalized === "hermes") {
+    const slug = hermesProfileSlug(profile.slug);
+    const hermesHome = options.hermesHome
+      ? path.resolve(expandHome(options.hermesHome, home))
+      : process.env.HERMES_HOME
+        ? path.resolve(expandHome(process.env.HERMES_HOME, home))
+        : path.join(home, ".hermes");
+    return path.join(hermesHome, "profiles", slug, "SOUL.md");
   }
 
   throw new Error(`Unsupported agent "${agent}"`);
@@ -187,6 +200,11 @@ function renderGoose(profile, context) {
 
   const marker = htmlMarker(profile, "goose", context);
   return stringifyFrontmatter(attributes, `${marker}\n\n${buildInstructionBody(profile, profile.adapters.goose ?? profile.adapters["claude-code"], "goose")}`);
+}
+
+function renderHermes(profile, context) {
+  const marker = htmlMarker(profile, "hermes", context);
+  return `${marker}\n\n${buildInstructionBody(profile, profile.adapters.hermes, "hermes")}\n`;
 }
 
 function buildInstructionBody(profile, adapter, harness) {
@@ -334,4 +352,13 @@ function flattenValues(values) {
     .flatMap((value) => String(value).split(","))
     .map((value) => value.trim())
     .filter(Boolean);
+}
+
+function hermesProfileSlug(value) {
+  const slug = String(value);
+  const reserved = new Set(["hermes", "default", "test", "tmp", "root", "sudo"]);
+  if (!/^[a-z0-9][a-z0-9_-]{0,63}$/.test(slug) || reserved.has(slug)) {
+    throw new Error(`Profile slug "${slug}" is not a valid Hermes profile name.`);
+  }
+  return slug;
 }

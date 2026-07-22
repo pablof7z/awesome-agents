@@ -10,6 +10,7 @@ Initial harness targets:
 - Claude Code
 - OpenCode
 - Goose
+- Hermes
 
 ## Codex
 
@@ -77,9 +78,27 @@ Goose output is Markdown with YAML frontmatter (`name`, `description`, optional
 `model`) and a generated marker. The agent body reuses the Claude Code adapter
 when a Goose-specific adapter is not present.
 
+## Hermes
+
+Generated Hermes named profiles install to:
+
+- Project: not supported; Hermes profiles are machine-local named instances
+- Global: `$HERMES_HOME/profiles/<profile>/SOUL.md`, or `~/.hermes/profiles/<profile>/SOUL.md`
+
+Run with:
+
+```bash
+hermes -p <profile> chat
+```
+
+Hermes loads `SOUL.md` from the selected profile's home as its primary identity.
+The generated Markdown includes the profile instructions, installed identity,
+agent-owned support paths, optional Hermes adapter instructions, and the managed
+file marker used by awesome-agents safety checks.
+
 ## Adapter Gaps
 
 Some source repositories may provide Codex adapters first. Claude Code and
 OpenCode use generated defaults unless a source repository adds native adapters
 for those harnesses. Goose reuses the Claude Code adapter when no Goose-specific
-adapter is present.
+adapter is present. Hermes uses its native adapter when one is provided.
