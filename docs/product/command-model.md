@@ -24,8 +24,8 @@ The CLI supports:
   language such as `npx awesome-agents add owner/repo --agent triage-agent`.
 - `--profile <slug>` to select profiles explicitly.
 - `--skill <slug>` as a compatibility alias, even though the artifact is a profile.
-- `--harness <codex|claude-code|opencode|goose|*>` to select target harnesses.
-- `--agent <codex|claude-code|opencode|goose|*>` remains accepted as a
+- `--harness <codex|claude-code|opencode|goose|hermes|*>` to select target harnesses.
+- `--agent <codex|claude-code|opencode|goose|hermes|*>` remains accepted as a
   legacy harness selector when the value is a known harness or harness alias.
 - `--all` to install every profile.
 - `--list` to inspect source profiles before installing.
@@ -36,10 +36,11 @@ Accepted implementation decision:
 
 - Install scope defaults to project where the target harness supports project-local profiles.
 - Codex is an exception because `codex --profile <name>` loads
-  `$CODEX_HOME/<name>.config.toml`.
+  `$CODEX_HOME/<name>.config.toml`. Hermes is also global because named profiles
+  load identity from `$HERMES_HOME/profiles/<name>/SOUL.md`.
 - When no `--harness` or legacy harness-valued `--agent` is provided, the CLI
   detects supported harness CLIs on `PATH` (`codex`, `claude`, `opencode`,
-  and `goose`).
+  `goose`, and `hermes`).
 - If one harness is detected, install to it. If multiple harnesses are detected,
   interactive installs open a checkbox selector with every detected harness
   selected by default; noninteractive, `--json`, and `--yes` installs use every

@@ -1,7 +1,7 @@
 {
   "name": "awesome-agents",
   "version": "0.1.10",
-  "description": "Install reusable agent profiles into Codex, Claude Code, OpenCode, and Goose.",
+  "description": "Install reusable agent profiles into Codex, Claude Code, OpenCode, Goose, and Hermes.",
   "type": "module",
   "bin": {
     "awesome-agents": "bin/awesome-agents.js"
@@ -29,6 +29,7 @@
     "claude-code",
     "opencode",
     "goose",
+    "hermes",
     "cli"
   ],
   "author": "Pablo Fernandez",

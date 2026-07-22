@@ -382,6 +382,20 @@ function runInstructionForOperation(operation, env) {
     };
   }
 
+  if (operation.harness === "hermes") {
+    if (!commandExists("hermes", env)) {
+      return undefined;
+    }
+    return {
+      profile: operation.profile,
+      name: operation.name,
+      summary: operation.summary,
+      harness: operation.harness,
+      command: `hermes -p ${shellWord(operation.profile)} chat`,
+      note: "Starts Hermes with this installed named profile."
+    };
+  }
+
   return undefined;
 }
 
@@ -512,13 +526,16 @@ function resolveScope(options = {}, harnesses = []) {
   if (options.project && harnesses.includes("codex")) {
     throw new Error("Codex profiles are loaded from $CODEX_HOME/<name>.config.toml and cannot be installed project-locally. Use --global or choose a different harness.");
   }
+  if (options.project && harnesses.includes("hermes")) {
+    throw new Error("Hermes profiles are named instances under $HERMES_HOME/profiles or ~/.hermes/profiles and cannot be installed project-locally. Use --global or choose a different harness.");
+  }
   if (options.global) {
     return "global";
   }
   if (options.project) {
     return "project";
   }
-  if (harnesses.includes("codex")) {
+  if (harnesses.includes("codex") || harnesses.includes("hermes")) {
     return "global";
   }
   return "project";
