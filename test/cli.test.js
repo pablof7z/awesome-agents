@@ -79,7 +79,7 @@ test("lists available profiles from a local source as JSON", () => {
   const parsed = JSON.parse(result.stdout);
   assert.deepEqual(
     parsed.profiles.map((profile) => profile.slug),
-    ["ops-agent", "research-agent", "triage-agent"]
+    ["guarded-agent", "ops-agent", "research-agent", "triage-agent"]
   );
 });
 

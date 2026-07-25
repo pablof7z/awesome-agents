@@ -1,0 +1,22 @@
+schema: awesome-agents/v1
+id: guarded-agent
+name: Guarded Agent
+description: Orchestrate-only profile used to exercise the Claude Code bash_guard hook.
+model: gpt-5.5
+reasoning_effort: high
+bash_guard:
+  self_management_roots:
+    - "~/.agents/homes/guarded-agent"
+  allow:
+    - "gh issue view"
+    - "gh issue list"
+    - "gh pr view"
+    - "gh pr list"
+    - "gh pr diff"
+    - "gh pr checks"
+    - "gh repo view"
+    - "ps"
+    - "lsof"
+instructions: |-
+  You are a guarded agent. Investigate, do not mutate state outside your
+  self-management root.
