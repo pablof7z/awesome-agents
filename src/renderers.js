@@ -167,8 +167,158 @@ function renderClaudeCode(profile, context) {
 
   attributes.tools = "Bash";
 
+  const bashGuard = normalizeBashGuard(profile.attributes.bash_guard);
+  if (bashGuard) {
+    attributes.hooks = buildBashGuardHooks(bashGuard);
+  }
+
   const marker = htmlMarker(profile, "claude-code", context);
   return stringifyFrontmatter(attributes, `${marker}\n\n${buildInstructionBody(profile, undefined, "claude-code")}`);
+}
+
+// Bash utilities Claude Code already treats as free/read-only (or, for `git`,
+// already classifies read vs. write itself) without any hook involvement.
+// The guard defers to that existing classification instead of duplicating it.
+const BASH_GUARD_FREE_PREFIXES = ["ls", "cat", "echo", "pwd", "head", "tail", "grep", "find", "wc", "which", "diff", "stat", "du", "cd"];
+const BASH_GUARD_WRAPPERS = ["time", "timeout", "nice", "nohup", "stdbuf", "command", "builtin", "noglob"];
+const BASH_GUARD_HEREDOC_MARKER = "AWESOME_AGENTS_BASH_GUARD_V1";
+
+// Generalizes to any profile that sets `bash_guard` in agent.yaml, not just
+// chief-of-staff: a default-deny PreToolUse hook for Bash, with an explicit
+// read-only allowlist and an unrestricted carve-out for the profile's own
+// self-management path(s) (e.g. its tracking-repo/workflow-memory root).
+function normalizeBashGuard(raw) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+    return undefined;
+  }
+
+  const selfManagementRoots = arrayify(raw.self_management_roots ?? raw.self_management_root)
+    .map((value) => String(value).trim())
+    .filter(Boolean);
+  const allow = arrayify(raw.allow)
+    .map((value) => String(value).trim())
+    .filter(Boolean);
+
+  if (selfManagementRoots.length === 0 && allow.length === 0) {
+    return undefined;
+  }
+
+  return { selfManagementRoots, allow };
+}
+
+function buildBashGuardHooks(bashGuard) {
+  return {
+    PreToolUse: [
+      {
+        matcher: "Bash",
+        hooks: [
+          {
+            type: "command",
+            command: bashGuardHookCommand(bashGuard)
+          }
+        ]
+      }
+    ]
+  };
+}
+
+function bashGuardHookCommand(bashGuard) {
+  const script = bashGuardHookScript(bashGuard);
+  return `node -e "$(cat <<'${BASH_GUARD_HEREDOC_MARKER}'\n${script}\n${BASH_GUARD_HEREDOC_MARKER}\n)"`;
+}
+
+// Judgment call (see PR description): rather than reimplementing shell-grammar
+// parsing, this splits on the common separators/operators and classifies each
+// part by its leading token. Any `git` subcommand anywhere in the command
+// causes the hook to defer entirely (no decision), leaving Claude Code's own
+// built-in read-only-git classifier and permission system in control, since
+// that already correctly distinguishes `git status` from `git push`. Command
+// or process substitution (`$(...)`, backticks, `<(...)`, `>(...)`) is denied
+// outright because it can smuggle an arbitrary command inside an
+// otherwise-safe-looking prefix (e.g. `ls $(rm -rf /)`), which naive prefix
+// matching cannot see through.
+function bashGuardHookScript(bashGuard) {
+  const selfRoots = JSON.stringify(bashGuard.selfManagementRoots);
+  const allow = JSON.stringify(bashGuard.allow);
+  const free = JSON.stringify(BASH_GUARD_FREE_PREFIXES);
+  const wrappers = JSON.stringify(BASH_GUARD_WRAPPERS);
+
+  return [
+    'const fs = require("fs");',
+    'const path = require("path");',
+    'let raw = "";',
+    'try { raw = fs.readFileSync(0, "utf8"); } catch (e) {}',
+    'let data = {};',
+    'try { data = JSON.parse(raw); } catch (e) {}',
+    'const cwd = data.cwd || process.cwd();',
+    'const command = (data.tool_input && data.tool_input.command) || "";',
+    `const selfRoots = ${selfRoots}.map((p) => p.replace(/^~(?=$|\\/)/, process.env.HOME || ""));`,
+    `const allow = ${allow};`,
+    `const free = ${free};`,
+    `const wrappers = ${wrappers};`,
+    "",
+    "function within(child, parent) {",
+    "  const rc = path.resolve(child);",
+    "  const rp = path.resolve(parent);",
+    "  return rc === rp || rc.startsWith(rp + path.sep);",
+    "}",
+    "function decide(decision, reason) {",
+    '  console.log(JSON.stringify({ hookSpecificOutput: { hookEventName: "PreToolUse", permissionDecision: decision, permissionDecisionReason: reason } }));',
+    "  process.exit(0);",
+    "}",
+    "",
+    "if (selfRoots.some((root) => root && within(cwd, root))) {",
+    '  decide("allow", "cwd is under a self-management root; unrestricted");',
+    "}",
+    "",
+    'if (!command.trim()) {',
+    '  decide("allow", "empty command");',
+    "}",
+    "",
+    // \\x60 is a backtick — written as an escape, not a literal character, because a
+    // literal backtick inside this script breaks shell parsing of the surrounding
+    // `"$(cat <<'MARKER' ... )"` heredoc-in-command-substitution wrapper (see PR notes).
+    "if (/\\$\\(|\\x60|<\\(|>\\(/.test(command)) {",
+    '  decide("deny", "bash-guard: command/process substitution present; cannot safely classify, default-deny applies");',
+    "}",
+    "",
+    "function firstToken(sub) {",
+    "  let s = sub.trim();",
+    "  let changed = true;",
+    "  while (changed) {",
+    "    changed = false;",
+    '    const stripped = s.replace(/^[A-Za-z_][A-Za-z0-9_]*=\\S*\\s+/, "");',
+    "    if (stripped !== s) { s = stripped; changed = true; }",
+    "    for (const w of wrappers) {",
+    '      if (s === w || s.startsWith(w + " ")) {',
+    "        s = s.slice(w.length).trim();",
+    "        changed = true;",
+    "      }",
+    "    }",
+    "  }",
+    "  return s;",
+    "}",
+    "",
+    'const parts = command.split(/&&|\\|\\||;|\\||\\n/).map((p) => p.trim()).filter(Boolean);',
+    "",
+    'if (parts.some((part) => firstToken(part).split(/\\s+/)[0] === "git")) {',
+    "  process.exit(0);",
+    "}",
+    "",
+    "function isSafe(sub) {",
+    "  const s = firstToken(sub);",
+    "  if (!s) return true;",
+    '  const first = s.split(/\\s+/)[0];',
+    "  if (free.includes(first)) return true;",
+    '  return allow.some((p) => s === p || s.startsWith(p + " "));',
+    "}",
+    "",
+    "if (parts.every(isSafe)) {",
+    '  decide("allow", "read-only investigation");',
+    "}",
+    "",
+    'decide("deny", "bash-guard: command not recognized as read-only; default-deny applies outside the self-management root");'
+  ].join("\n");
 }
 
 function renderOpenCode(profile, context) {
