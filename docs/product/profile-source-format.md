@@ -79,6 +79,40 @@ by relative path instead of embedding a harness-specific or checkout-specific pa
 Profile source files are intentionally under `agents/`, not `skills/`, because
 the source format models agent profiles separately from loadable skills.
 
+## Bash Guard
+
+An orchestrate-only profile can opt into a default-deny Bash policy. For Claude
+Code this renders as a `PreToolUse` hook in the installed profile:
+
+```yaml
+bash_guard:
+  self_management_roots:
+    - "~/.agents/homes/chief-of-staff"
+  allow:
+    - "gh pr view"
+    - "gh pr list"
+```
+
+Outside the carve-outs, a command is allowed only when every part's leading
+token is in `allow` or is one of the harness's already-free read-only utilities;
+`git` is left to the harness's own read/write classification. Two things carve
+out of the default-deny:
+
+- **cwd** under a `self_management_roots` entry — the profile working on its own
+  tracking repo or workflow memory is unrestricted.
+- **The invoked script** resolving under a script root: the entries in
+  `self_management_roots` plus the profile's installed agent home, which is
+  where `resources:` scripts and declared skills land. A profile therefore never
+  has to pin its own scripts into `allow`, and a session started in a project
+  directory can still run them.
+
+The script root is matched against the resolved path of the script actually
+being run — the leading token, or a known interpreter's script argument. A path
+that merely appears as some other argument does not make a command safe, and a
+relative path resolves against the session's cwd, so instructions should point
+at agent-owned scripts through the agent-home paths the rendered profile
+provides.
+
 ## Source Resolution
 
 The CLI should support:
