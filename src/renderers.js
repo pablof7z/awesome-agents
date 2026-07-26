@@ -167,7 +167,7 @@ function renderClaudeCode(profile, context) {
 
   attributes.tools = "Bash";
 
-  const bashGuard = normalizeBashGuard(profile.attributes.bash_guard);
+  const bashGuard = normalizeBashGuard(profile.attributes.bash_guard, profile);
   if (bashGuard) {
     attributes.hooks = buildBashGuardHooks(bashGuard);
   }
@@ -181,13 +181,29 @@ function renderClaudeCode(profile, context) {
 // The guard defers to that existing classification instead of duplicating it.
 const BASH_GUARD_FREE_PREFIXES = ["ls", "cat", "echo", "pwd", "head", "tail", "grep", "find", "wc", "which", "diff", "stat", "du", "cd"];
 const BASH_GUARD_WRAPPERS = ["time", "timeout", "nice", "nohup", "stdbuf", "command", "builtin", "noglob"];
+// Interpreters whose script argument the guard resolves as "the thing actually
+// being invoked". `python3.12`-style versioned names are matched separately.
+const BASH_GUARD_INTERPRETERS = ["python", "node", "bun", "deno", "ruby", "perl", "bash", "sh", "zsh"];
+// Interpreter flags that take no argument and cannot carry inline code, so the
+// script path can still be identified after them. Anything else (notably
+// `-c`/`-e`, which smuggle a program in as a flag argument) forfeits the
+// carve-out.
+const BASH_GUARD_INTERPRETER_FLAGS = ["-u", "-B", "-E", "-I", "-O", "-OO", "-S", "-s", "-x", "--"];
 const BASH_GUARD_HEREDOC_MARKER = "AWESOME_AGENTS_BASH_GUARD_V1";
 
 // Generalizes to any profile that sets `bash_guard` in agent.yaml, not just
 // chief-of-staff: a default-deny PreToolUse hook for Bash, with an explicit
 // read-only allowlist and an unrestricted carve-out for the profile's own
 // self-management path(s) (e.g. its tracking-repo/workflow-memory root).
-function normalizeBashGuard(raw) {
+//
+// Two things anchor the carve-out, because a session's cwd is normally a
+// *project* directory rather than the profile's own home:
+//   - `selfManagementRoots`: cwd under one of them means unrestricted.
+//   - `scriptRoots`: the invoked script resolving under one of them means the
+//     profile is running its own code, regardless of cwd. The agent home is
+//     always a script root, since that is where `awesome-agents` installs a
+//     profile's `resources:` scripts and its declared skills.
+function normalizeBashGuard(raw, profile = {}) {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
     return undefined;
   }
@@ -203,7 +219,9 @@ function normalizeBashGuard(raw) {
     return undefined;
   }
 
-  return { selfManagementRoots, allow };
+  const scriptRoots = [...new Set([...selfManagementRoots, profile.agentHome].filter(Boolean))];
+
+  return { selfManagementRoots, scriptRoots, allow };
 }
 
 function buildBashGuardHooks(bashGuard) {
@@ -237,11 +255,20 @@ function bashGuardHookCommand(bashGuard) {
 // outright because it can smuggle an arbitrary command inside an
 // otherwise-safe-looking prefix (e.g. `ls $(rm -rf /)`), which naive prefix
 // matching cannot see through.
+//
+// A part is also safe when it invokes the profile's *own* code: either the
+// leading token is a path under a script root, or it is a known interpreter
+// whose script argument is. Only the script argument counts — an arbitrary
+// argument that happens to live under a root does not make the surrounding
+// command safe (`rm -rf / <root>` stays denied).
 function bashGuardHookScript(bashGuard) {
   const selfRoots = JSON.stringify(bashGuard.selfManagementRoots);
+  const scriptRoots = JSON.stringify(bashGuard.scriptRoots ?? bashGuard.selfManagementRoots);
   const allow = JSON.stringify(bashGuard.allow);
   const free = JSON.stringify(BASH_GUARD_FREE_PREFIXES);
   const wrappers = JSON.stringify(BASH_GUARD_WRAPPERS);
+  const interpreters = JSON.stringify(BASH_GUARD_INTERPRETERS);
+  const interpreterFlags = JSON.stringify(BASH_GUARD_INTERPRETER_FLAGS);
 
   return [
     'const fs = require("fs");',
@@ -252,15 +279,27 @@ function bashGuardHookScript(bashGuard) {
     'try { data = JSON.parse(raw); } catch (e) {}',
     'const cwd = data.cwd || process.cwd();',
     'const command = (data.tool_input && data.tool_input.command) || "";',
-    `const selfRoots = ${selfRoots}.map((p) => p.replace(/^~(?=$|\\/)/, process.env.HOME || ""));`,
+    'const home = process.env.HOME || "";',
+    'function expandTilde(p) { return p.replace(/^~(?=$|\\/)/, home); }',
+    `const selfRoots = ${selfRoots}.map(expandTilde);`,
+    `const scriptRoots = ${scriptRoots}.map(expandTilde);`,
     `const allow = ${allow};`,
     `const free = ${free};`,
     `const wrappers = ${wrappers};`,
+    `const interpreters = ${interpreters};`,
+    `const interpreterFlags = ${interpreterFlags};`,
     "",
+    // A profile's home is routinely a symlink into its tracking repo, so a path
+    // can be under a root lexically, physically, or only one of the two.
+    "function realOrSelf(p) {",
+    "  try { return fs.realpathSync(p); } catch (e) { return p; }",
+    "}",
     "function within(child, parent) {",
-    "  const rc = path.resolve(child);",
     "  const rp = path.resolve(parent);",
-    "  return rc === rp || rc.startsWith(rp + path.sep);",
+    "  const rc = path.resolve(child);",
+    "  const parents = [rp, realOrSelf(rp)];",
+    "  const children = [rc, realOrSelf(rc)];",
+    "  return parents.some((p) => children.some((c) => c === p || c.startsWith(p + path.sep)));",
     "}",
     "function decide(decision, reason) {",
     '  console.log(JSON.stringify({ hookSpecificOutput: { hookEventName: "PreToolUse", permissionDecision: decision, permissionDecisionReason: reason } }));',
@@ -269,6 +308,18 @@ function bashGuardHookScript(bashGuard) {
     "",
     "if (selfRoots.some((root) => root && within(cwd, root))) {",
     '  decide("allow", "cwd is under a self-management root; unrestricted");',
+    "}",
+    "",
+    "const QUOTES = [String.fromCharCode(34), String.fromCharCode(39)];",
+    "function unquote(token) {",
+    "  const t = token.trim();",
+    "  if (t.length > 1 && t[0] === t[t.length - 1] && QUOTES.includes(t[0])) {",
+    "    return t.slice(1, -1);",
+    "  }",
+    "  return t;",
+    "}",
+    "function isInterpreter(name) {",
+    "  return interpreters.includes(name) || /^python[0-9.]*$/.test(name);",
     "}",
     "",
     'if (!command.trim()) {',
@@ -305,19 +356,43 @@ function bashGuardHookScript(bashGuard) {
     "  process.exit(0);",
     "}",
     "",
+    // The path of the script this part actually runs, if it runs one: either the
+    // leading token itself, or the script argument of a known interpreter.
+    "function invokedScriptPath(sub) {",
+    '  const tokens = firstToken(sub).split(/\\s+/).filter(Boolean).map(unquote);',
+    "  if (tokens.length === 0) return undefined;",
+    "  const head = tokens[0];",
+    "  if (isInterpreter(path.basename(head))) {",
+    "    let i = 1;",
+    "    while (i < tokens.length && interpreterFlags.includes(tokens[i])) i++;",
+    "    if (i >= tokens.length) return undefined;",
+    '    if (tokens[i].startsWith("-")) return undefined;',
+    "    return tokens[i];",
+    "  }",
+    '  if (head.includes("/") || head.startsWith("~")) return head;',
+    "  return undefined;",
+    "}",
+    "function isOwnScript(sub) {",
+    "  const script = invokedScriptPath(sub);",
+    "  if (!script) return false;",
+    "  const resolved = path.resolve(cwd, expandTilde(script));",
+    "  return scriptRoots.some((root) => root && within(resolved, root));",
+    "}",
+    "",
     "function isSafe(sub) {",
     "  const s = firstToken(sub);",
     "  if (!s) return true;",
+    "  if (isOwnScript(sub)) return true;",
     '  const first = s.split(/\\s+/)[0];',
     "  if (free.includes(first)) return true;",
     '  return allow.some((p) => s === p || s.startsWith(p + " "));',
     "}",
     "",
     "if (parts.every(isSafe)) {",
-    '  decide("allow", "read-only investigation");',
+    '  decide("allow", parts.some(isOwnScript) ? "invokes a profile-owned script under its own script root" : "read-only investigation");',
     "}",
     "",
-    'decide("deny", "bash-guard: command not recognized as read-only; default-deny applies outside the self-management root");'
+    'decide("deny", "bash-guard: command not recognized as read-only; default-deny applies outside the self-management root and no profile-owned script was invoked");'
   ].join("\n");
 }
 
